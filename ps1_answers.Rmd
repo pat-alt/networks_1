@@ -1,0 +1,115 @@
+---
+title: "Problem Set 4"
+author: "Patrick Altmeyer, Buelent Uendes, Antonios Vasileiadis"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
+
+
+# Problem 1
+
+Let’s consider here some properties of degrees in undirected and unweighted networks without self-loops. We are going to use the following notation: $n$ number of nodes; $L$ number of undirected links. Prove the following properties:
+
+## a) 
+
+The number of nodes with odd degree is even.
+
+<hr>
+
+![](www/ps1_1_a.png)
+
+## b)
+
+There are always at least two nodes with same degree.
+
+<hr>
+
+### TODO
+
+# Problem 2
+
+Given the adjacency matrix $G$ of a directed and unweighted network, provide an inter- pretation for the entries in the matrices $GG^T$ and $G^TG$, where $G^T$ is the transpose of $G$. Make use of a small (not more than ten nodes) directed network to illustrate numerically the differences between both matrices.
+
+<hr>
+
+Consider the following graph
+
+```{r}
+library(igraph)
+g <- graph_from_literal(
+  A -+ B,
+  A -+ C -+ D -+ E,
+  B -+ D,
+  F -+ E
+)
+plot(g)
+```
+
+and its corresponding adjacency matrix:
+
+```{r, results='asis'}
+G <- as.matrix(as_adjacency_matrix(g))
+G_lat <- matrix2latex(G)
+```
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G&=`r G_lat`\\
+\end{aligned}
+(\#eq:G)
+\end{equation}
+$$
+
+Then we have for the two crossproducts we have
+
+```{r}
+GtG <- crossprod(G)
+GGt <- crossprod(t(G))
+GtG_lat <- matrix2latex(GtG)
+GGt_lat <- matrix2latex(GGt)
+```
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& GG^T&=`r GGt_lat` \\
+\end{aligned}
+(\#eq:GGt)
+\end{equation}
+$$
+
+and 
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G^TG&=`r GtG_lat` \\
+\end{aligned}
+(\#eq:GtG)
+\end{equation}
+$$
+
+This example illustrates nicely how we can interpret elements in \@ref(eq:GGt) and \@ref(eq:GtG). With respect to \@ref(eq:GGt), firstly note that the elements on the diagonal correspond to the out-degrees of nodes: for example, the out-degree of node $A$ is equal to `r as.numeric(diag(GGt)["A"])`, while the out-degree of $E$ is `r as.numeric(diag(GGt)["E"])`. Off-diagonal elements in \@ref(eq:GGt) indicate the number of outgoing nodes that $j$ and $i$ share: for example, nodes $B$ and $C$ share `r GGt["B","C"]` node. With respect to \@ref(eq:GtG) the narrative is very similar, except that everything revolves around in-degrees: diagonal elements reveal the number in-degrees of nodes, while off-diagonal elements indicate how many ingoing nodes $j$ and $i$ share.
+
+
+
