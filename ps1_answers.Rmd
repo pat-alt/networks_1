@@ -111,5 +111,133 @@ $$
 
 This example illustrates nicely how we can interpret elements in \@ref(eq:GGt) and \@ref(eq:GtG). With respect to \@ref(eq:GGt), firstly note that the elements on the diagonal correspond to the out-degrees of nodes: for example, the out-degree of node $A$ is equal to `r as.numeric(diag(GGt)["A"])`, while the out-degree of $E$ is `r as.numeric(diag(GGt)["E"])`. Off-diagonal elements in \@ref(eq:GGt) indicate the number of outgoing nodes that $j$ and $i$ share: for example, nodes $B$ and $C$ share `r GGt["B","C"]` node. With respect to \@ref(eq:GtG) the narrative is very similar, except that everything revolves around in-degrees: diagonal elements reveal the number in-degrees of nodes, while off-diagonal elements indicate how many ingoing nodes $j$ and $i$ share.
 
+# Problem 3
+
+Read the section on bipartite networks in Barabasi, chapter 2, and solve the two problems on bipartite networks at the end of the chapter.
+
+<hr>
+
+## TODO
+
+# Problem 4
+
+# Problem 5
+
+Consider a network with the following adjacency matrix
+
+```{r}
+d <- 8
+G <- matrix(rep(0,d*d),d)
+G[1,c(4,7)] <-  1
+G[2,c(3,5,6)] <-  1
+G[3,2] <- 1
+G[4,c(1,7,8)] <-  1
+G[5,c(2,6)] <-  1
+G[6,c(2,5)] <-  1
+G[7,c(1,4,8)] <-  1
+G[8,c(4,7)] <-  1
+g <- graph_from_adjacency_matrix(G)
+G_lat <- matrix2latex(G)
+```
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G&=`r G_lat` \\
+\end{aligned}
+(\#eq:G5)
+\end{equation}
+$$
+
+## a)
+
+How many components there are in this network?
+
+<hr>
+
+There are two components in the network:
+
+```{r}
+plot(g)
+```
+
+
+## b)
+
+```{r}
+l <- 7
+library(expm)
+n_paths <- G %^% l
+```
+
+There are `r n_paths[1,5]` paths of length `r l` from node 1 to 5 (these nodes are in different components). There are `r n_paths[1,8]` paths of length `r l` from node 1 to 8. This values corresponds to the $ij$-th element of $G^{l=7}_{(1,8)}$.
+
+## c)
+
+Given parameters $α$ and $β$, compute the Katz-Bonacich centrality of each node.
+
+<hr>
+
+We implement Katz-Bonacich as follows:
+
+```{r, code=readLines("R/utils.katz_bonacich.R"),eval=F,echo=T}
+```
+
+Below we plot the resulting centrality measures for three different values of $\beta$ (columns) and varying degrees of $\alpha$ (Figure \@ref(fig:centr)). Evidently the relative ranking in terms of centrality is consistent across parameter choices.
+
+```{r centr, fig.height=3, fig.width=9, fig.cap="Katz-Bonacich centrality for different parameter choices."}
+library(ggplot2)
+alpha <- seq(0.5,2,length.out=5)
+beta <- seq(0.15,0.35,length.out=3)
+grid <- data.table(expand.grid(alpha=alpha,beta=beta))
+output <- rbindlist(
+  lapply(
+    1:nrow(grid),
+    function(i) {
+      list2env(c(grid[i,]), envir = environment())
+      centr <- katz_bonacich(alpha,beta,G)
+      data.table(alpha=alpha, beta=beta, centr=centr, node=1:length(centr))
+    }
+  )
+)
+p <- ggplot(data=output, aes(x=node, y=centr, colour=factor(alpha))) +
+  geom_line() +
+  geom_point() +
+  scale_color_discrete(name="Alpha:") +
+  facet_grid(
+    cols = vars(beta)
+  ) +
+  labs(
+    x="Node",
+    y="Centrality"
+  )
+p
+```
+
+## d)
+
+Order nodes according to Katz-Bonacich centrality for the particular case in which $α=2$ and $β=0.25$. Would it change anything in this order if we change $α=2$ for some other strictly positive number?
+
+<hr>
+
+In this case the order is as follows:
+
+```{r, results='asis'}
+library(kableExtra)
+kable(output[alpha==2 & beta==0.25][order(-centr)][,.(centr,node)], col.names = c("Centrality","Node"), digits = 2)
+```
+
+
+As evident from Figure \@ref(fig:centr) above, the effect of $\alpha$ is purely scaling, so nothing would change with respect to the relative ordering.
+
+## e)
+
+Compute the eigenvector centrality of each node. You can use a computer to make computations but you cannot directly use some network analysis software with a build function to compute this directly. Explain the steps you follow.
+
+<hr>
+
+```{r}
+
+```
 
 
