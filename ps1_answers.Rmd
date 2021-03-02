@@ -236,8 +236,91 @@ Compute the eigenvector centrality of each node. You can use a computer to make 
 
 <hr>
 
-```{r}
+Given $G$ is a positive matrix, it suffices to find its leading eigenvalue $\lambda$. The by the Perron-Frobenius (PF) theorem there exists a positive eigenvector $v$. Hence we simply proceed as follows: 
 
+1. Eigen-decompose $G$.
+2. Find the eigenvector $v$ corresponding to the leading eigenvalue $\lambda$. By the PF theorem the there exists a an eigenvector $\tilde{v}$ that only has non-negative entries. Consequently, $v$ can be either all positive or all negative and hence we simply take element-wise absolute values to ensure the former. 3. Finnaly we scale $\tilde{v}$ such that its largest element is equal to 1. 
+
+In R we implement this as follows:
+
+```{r, code=readLines("R/utils.centrality_eigen.R"),eval=F,echo=T}
+```
+ 
+```{r}
+centr <- centrality_eigen(G)
+kable(data.table(centr = centr, node = 1:length(centr))[order(-centr)], col.names = c("Centrality","Node"), digits = 2)
+```
+
+
+# Problem 6
+
+# Problem 7
+
+Find the dataset about jazz musicians, from the paper P.Gleiser and L. Danon , Adv. Complex Syst.6, 565 (2003). Using some software for network analysis:
+
+```{r}
+load("data/jazz.rda")
+G <- Jazz
+rm(Jazz)
+g <- graph_from_adjacency_matrix(G)
+bands <- data.table(band=1:ncol(G))
+```
+
+## a)
+
+Compute the degree centrality of each node.
+
+<hr>
+
+Degree centrality can be implemented in R as follows:
+
+```{r, code=readLines("R/utils.centrality_degree.R"),eval=F,echo=T}
+```
+
+Below we compute the degree centralities of the nodes and store them in a data frame.
+
+```{r, echo=TRUE}
+centr <- centrality_degree(G)
+bands[,centr_degree:=centr]
+```
+
+## b) 
+
+Compute the eigenvector centrality of each node.
+
+<hr>
+
+Below we compute the eigenvector centralities of the nodes and store them in the same data frame.
+
+```{r, echo=TRUE}
+centr <- centrality_eigen(G)
+bands[,centr_eigen:=centr]
+```
+
+
+## c)
+
+Compare the top 10 nodes according to the previous two centrality measures.
+
+<hr>
+
+### TODO
+
+## d)
+
+Compute the individual clustering coefficients of each node, and the average clustering coefficient. Compare this average clustering to the ratio $L/\begin{pmatrix}n \\2\end{pmatrix}$ of that network.
+
+<hr>
+
+### TO FINISH
+
+```{r, echo=TRUE}
+clust_coeff <- transitivity(g, type="local")
+bands[,clust:=clust_coeff]
+clust_avg <- transitivity(g)
+n <- nrow(G)
+L <- sum(G %*% rep(1, nrow(G)))
+ratio <- L/choose(n,2)
 ```
 
 
