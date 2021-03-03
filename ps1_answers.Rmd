@@ -292,6 +292,161 @@ $$
 
 # Problem 4
 
+## a)
+
+Without using matrices try to answer the following questions:
+
+### (i)
+
+how many paths of length $k ≥ 1$ there are starting at $1$ and ending at $2$?
+
+<hr>
+
+#### TODO
+
+### (ii)
+
+how many cycles of length $k ≥ 1$ there are starting at $1$ and ending at $1$?
+
+<hr>
+
+#### TODO
+
+## b)
+
+Write down the adjacency matrix G of this network.
+
+```{r}
+library(expm)
+d <- 5
+G <- matrix(rep(0,d^2),d)
+G[1,] <- c(0,rep(1,d-1))
+G <- G + t(G)
+G_lat <- matrix2latex(G)
+```
+
+The adjacency matrix is as follows (here $n=`r d`$):
+
+$$
+\begin{aligned}
+&& G&=`r G_lat` \\
+\end{aligned}
+$$
+
+## c)
+
+```{r}
+powers <- 2:5
+mats <- lapply(
+  powers,
+  function(i) {
+    assign(sprintf("G_%i",i), G %^% i, envir = environment())
+    return(
+      list(
+        G = get(sprintf("G_%i",i)),
+        G_lat = matrix2latex(get(sprintf("G_%i",i)))
+      )
+    )
+  }
+)
+```
+
+Below we show the first `r max(powers)` powers of $G$: 
+
+$$
+\begin{aligned}
+&& G^2&=`r mats[[1]]$G_lat`\\
+&& G^3&=`r mats[[2]]$G_lat`\\
+&& G^4&=`r mats[[3]]$G_lat`\\
+&& G^5&=`r mats[[4]]$G_lat`\\
+\end{aligned}
+$$
+
+As a general rule, we have for even powers ($k\in[2,4,6,...]$)
+
+$$
+\begin{aligned}
+&& G^k&= \begin{pmatrix}
+(n-1)^{( \frac{k}{2})} & 0 & ... & 0 \\
+0 & (n-1)^{( \frac{k}{2}-1)} & ... & (n-1)^{( \frac{k}{2}-1)}  \\
+... & ... & ... & ... \\
+0 & (n-1)^{( \frac{k}{2}-1)} & ... & (n-1)^{( \frac{k}{2}-1)}
+\end{pmatrix}
+ \\
+\end{aligned}
+$$
+
+and for odd powers:
+
+$$
+\begin{aligned}
+&& G^k&= \begin{pmatrix}
+0 & (n-1)^{( \frac{k-1}{2}-1)} & ... & (n-1)^{( \frac{k-1}{2}-1)} \\
+(n-1)^{( \frac{k-1}{2}-1)} & 0 & ... & 0  \\
+... & ... & ... & ... \\
+(n-1)^{( \frac{k-1}{2}-1)} & 0 & ... & 0
+\end{pmatrix}
+ \\
+\end{aligned}
+$$
+
+## d)
+
+<hr>
+
+We could compute the centrality with respect to the number of paths of length $l\in[1,\ell]$, as we saw in class, for example up to $\ell=5$: 
+
+$$
+\begin{aligned}
+&& \mathbf{c}&=\alpha \left( \mathbf{1} + \beta G \mathbf{1} + \beta^2 G^2 \mathbf{1} + ... + \beta^5 G^5 \mathbf{1}   \right) \\
+\end{aligned}
+$$
+```{r}
+alpha = 2
+beta = 0.25
+```
+
+Letting $\alpha=`r alpha`$ and $\beta=`r beta`$ we get
+
+```{r, echo=TRUE}
+deg <- alpha * (
+  rep(1,d) + 
+    beta * G %*% rep(1,d)+
+    beta^2 * G %^% 2 %*% rep(1,d) +
+    beta^3 * G %^% 3 %*% rep(1,d) +
+    beta^4 * G %^% 4 %*% rep(1,d) +
+    beta^5 * G %^% 5 %*% rep(1,d) 
+)
+kable(data.table(deg=deg, node=1:5), col.names = c("Degree", "Node"))
+```
+
+
+## e)
+
+Now compute again the Katz-Bonacich centrality of each node by directly solving the linear system equations that characterizes it, and check that you obtain the same result as in the previous section.
+
+<hr>
+
+We have simply have:
+
+$$
+\begin{aligned}
+&& \mathbf{c}&= \alpha \begin{pmatrix}
+1 & -\beta \mathbf{1}^T_{(n-1)} \\
+-\beta \mathbf{1}_{(n-1)} & \mathbf{I}_{(n-1)}
+\end{pmatrix}^{-1} \mathbf{1}\\
+\end{aligned}
+$$
+
+For the same parameters as before we have
+
+```{r}
+deg <- katz_bonacich(alpha=2, beta=.25, G)
+kable(data.table(deg=deg, node=1:5), col.names = c("Degree", "Node"))
+```
+
+which is very similar. As $\ell \rightarrow \infty$ the solution in (d) converges to the solution here in (e).
+
 # Problem 5
 
 Consider a network with the following adjacency matrix
@@ -487,7 +642,7 @@ Compute the individual clustering coefficients of each node, and the average clu
 ```{r, echo=TRUE}
 clust_coeff <- transitivity(g, type="local")
 bands[,clust:=clust_coeff]
-clust_avg <- transitivity(g)
+clust_avg <- transitivity(g, type="average")
 n <- nrow(G)
 L <- sum(G %*% rep(1, nrow(G)))
 ratio <- L/choose(n,2)
