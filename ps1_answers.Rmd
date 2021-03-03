@@ -43,11 +43,11 @@ There are always at least two nodes with same degree.
 
 <hr>
 
-### TODO
+![](www/Problem_1b_bülent.png)
 
 # Problem 2
 
-Given the adjacency matrix $G$ of a directed and unweighted network, provide an inter- pretation for the entries in the matrices $GG^T$ and $G^TG$, where $G^T$ is the transpose of $G$. Make use of a small (not more than ten nodes) directed network to illustrate numerically the differences between both matrices.
+Given the adjacency matrix $G$ of a directed and unweighted network, provide an interpretation for the entries in the matrices $GG^T$ and $G^TG$, where $G^T$ is the transpose of $G$. Make use of a small (not more than ten nodes) directed network to illustrate numerically the differences between both matrices.
 
 <hr>
 
@@ -292,6 +292,47 @@ $$
 
 # Problem 4
 
+Consider the star network, in which there are n nodes with node 1, the hub, connected to all other nodes, the spokes, and the spokes are only connected to the hub. There are no self-loops.
+
+## a)
+
+<hr>
+
+![](www/Problem_4_a.png)
+
+## b)
+Write down the adjacency matrix G of this network.
+
+<hr>
+
+![](www/Problem_4_b.png)
+
+
+## c)
+
+Compute a few powers of the adjacency matrix and obtain a general expression(s) for all powers G k , k ≥ 1.
+
+<hr>
+
+![](www/Problem_4_c_1.png)
+<hr>
+
+![](www/Problem_4_c_2.png)
+
+## d)
+
+Use the previous section to compute the Katz-Bonacich centrality of each node for general values of α and β.
+CHECK!
+
+![](www/Problem_4_d.png)
+
+
+## e)
+
+Now compute again the Katz-Bonacich centrality of each node by directly solving the linear system equations that characterizes it, and check that you obtain the same result as in the previous section.
+
+TODO!
+
 # Problem 5
 
 Consider a network with the following adjacency matrix
@@ -423,6 +464,39 @@ kable(data.table(centr = centr, node = 1:length(centr))[order(-centr)], col.name
 
 
 # Problem 6
+
+## a)
+
+Consider the following network, that we are going to call a circle: node 1 is connected to node n and node 2, node 2 is connected to node 1 and node 3, node 3 is connected to node 2 and node 4,..., node n is connected to node n-1 and node 1. What is the diameter of that network? Is that network bipartite?
+
+<hr>
+![](www/Problem_6a.png)
+
+## b)
+
+Find a network with largest possible diameter within the set of networks that have n nodes and just one single component.
+
+<hr>
+![](www/Problem_6b.png)
+
+
+
+## c)
+
+Find a network with smallest possible diameter within the set of networks that have n nodes and just one single component.
+
+<hr>
+![](www/Problem_6_c.png)
+
+## d)
+
+Find an undirected network with one single component in which the diameter is 4 times larger than the average distance.
+
+<hr>
+![](www/Problem_6_d.png)
+
+
+
 
 # Problem 7
 
