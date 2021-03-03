@@ -117,7 +117,178 @@ Read the section on bipartite networks in Barabasi, chapter 2, and solve the two
 
 <hr>
 
-## TODO
+## a)
+
+Consider the bipartite network of Image 2.21
+
+![](www/ps1_bipartite.jpg)
+
+### (i)
+
+Construct its adjacency matrix. Why is it a block-diagonal matrix?
+
+<hr>
+
+```{r}
+d <- 11
+G <- matrix(rep(0,d^2),d)
+G[1,7] <- 1
+G[2,9] <- 1
+G[3,c(7,8,9)] <- 1
+G[4,c(9,10)] <- 1
+G[5,c(9,11)] <- 1
+G[6,11] <- 1
+G <- G + t(G)
+G_lat <- matrix2latex(G)
+```
+
+The adjacency matrix
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G&=`r G_lat` \\
+\end{aligned}
+(\#eq:bipartite)
+\end{equation}
+$$
+
+is block-diagonal, because it by construction its nodes can be divided into two disjoint sets $U=\{1,2,3,4,5,6\}$ and $V=\{7,8,9,10,11\}$. In other words, nodes in $U$ are connected only to nodes in $V$ and vice-versa. 
+
+### (ii)
+
+Construct the adjacency matrix of its two projections, on the purple and on the green nodes, respectively.
+
+<hr>
+
+```{r, echo=TRUE}
+G_U <- crossprod(t(G[1:6,7:11]))
+diag(G_U) <- 0
+G_U_lat <- matrix2latex(G_U)
+```
+
+The adjacency matrix of the purple projection is
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G_U&=`r G_U_lat` \\
+\end{aligned}
+(\#eq:purple)
+\end{equation}
+$$
+
+which can be computed as $\{G\}_{(1:6,7:11)}\{G\}_{(1:6,7:11)}^T$ and then setting diagonal elements to zero.
+
+```{r, echo=TRUE}
+G_V <- crossprod(t(G[7:11,1:6]))
+diag(G_V) <- 0
+G_V_lat <- matrix2latex(G_V)
+```
+
+The adjacency matrix of the purple projection is
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& G_V&=`r G_V_lat` \\
+\end{aligned}
+(\#eq:green)
+\end{equation}
+$$
+
+which can be computed as $\{G\}_{(7:11,1:6)}\{G\}_{(7:11,1:6)}^T$ and then setting diagonal elements to zero.
+
+### (iii)
+
+Calculate the average degree of the purple nodes and the average degree of the green nodes in the bipartite network.
+
+<hr>
+
+Average degrees can be computed as $\frac{1}{6}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(1:6,7:11)}$ and $\frac{1}{5}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(7:11,1:6)}$, respectively:
+
+```{r}
+library(kableExtra)
+degrees <- data.table(d = c(G %*% rep(1,ncol(G))), set=c(rep("U",6),rep("V",5)))
+kable(degrees[,.(avg=mean(d)),by=set], col.names=c("Set", "Avg. degree"))
+```
+
+### (iv)
+
+Calculate the average degree in each of the two network projections. Is it surprising that the values are different from those obtained in point (iii)?
+
+<hr>
+
+Average degrees can be computed as $\frac{1}{d} ( \mathbf{1}_d^T G_S \mathbf{1}_d)$ where $S\in\{U,V\}$:
+
+```{r, echo=TRUE}
+avg_d_U <- as.numeric(rep(1,ncol(G_U)) %*% G_U %*% rep(1,ncol(G_U))/ncol(G_U))
+avg_d_V <- as.numeric(rep(1,ncol(G_V)) %*% G_V %*% rep(1,ncol(G_V))/ncol(G_V))
+```
+
+This yields $\bar{d}_U=`r avg_d_U`$ and $\bar{d}_V=`r avg_d_V`$. It is not surprising that they differ. Consider this simple, but illustrative example of a bipartite network: let $U={A,B}$ and $V=[1,100]$ and suppose each node in $V$ is connected to $A$, with only node $1$ connected to $B$. Then clearly $A$'s degree within the whole network is 100 and $B$'s degree is one. Within the projection of $U$ both $A$ and $B$ have the same degree 1. 
+
+## b)
+
+Consider a bipartite network with $N_1$ and $N_2$ nodes in the two sets.
+
+### (i)
+
+What is the maximum number of links $L_{max}$ the network can have?
+
+<hr>
+
+Since nodes within the two disjoint sets cannot be connected to each other, but there can be arbitrarily many links between the two sets: $L\le N_1N_2$ and hence $L_{max}=N_1N_2$.
+
+### (ii)
+
+How many links cannot occur compared to a non-bipartite network of size $N = N_1 + N_2$?
+
+<hr>
+
+For a non-bipartite network we have $\tilde{L}_{max}=\binom{N_1+N_2}{2}= \frac{(N_1+N_2)(N_1+N_2-1)}{2}$. By expanding the product, this can be rearranged as follows:
+
+$$
+\begin{aligned}
+&& \tilde{L}_{max}&=\frac{N_1(N_1-1)+N_1N_2+N_2(N_2-1)+N_2N_1}{2} \\
+&& &= \frac{N_1(N_1-1)+N_2(N_2-1)}{2} + N_1N_2 \\
+&& &= \binom{N_1}{2} + \binom{N_2}{2} + N_1N_2\\
+&& \tilde{L}_{max}&= \binom{N_1}{2} + \binom{N_2}{2} + L_{max} \\
+\end{aligned}
+$$
+Hence, the number of links that cannot occure in a bipartite network compared to a non-bipartite network is simply equal to $\Delta=\binom{N_1}{2} + \binom{N_2}{2}$
+
+### (iii)
+
+If $N1<<N2$ , what can you say about the network density, that is the total number of links over the maximum number of links, $L_{max}$?
+
+<hr>
+
+The smaller the ratio $\frac{N_1}{N_2}$ where $N_1<N2$ (or equivalently the smaller $\frac{N_2}{N_1}$ where $N_2<N_1$), the smaller $L_{max}$.
+
+### (iv)
+
+Find an expression connecting $N1$, $N2$ and the average degree for the two sets in the bipartite network, $〈k1〉$ and $〈k2〉$.
+
+<hr>
+
+As per above, we can denote more generally
+
+$$
+\begin{aligned}
+&& 〈k1〉&=\frac{1}{N_1}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(1:N_1,(N_1+1):N)} \\
+&& 〈k2〉&=\frac{1}{N_2}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{( (N_1+1):N, 1:N_1)} \\
+\end{aligned}
+$$
+
+where $G$ is the adjacency matrix. Alternatively, we can use a notation in terms of sums:
+
+$$
+\begin{aligned}
+&& 〈k1〉&=\frac{1}{N_1}\sum_{i \in U} \sum_{j \in V} g_{ij} \\
+&& 〈k2〉&=\frac{1}{N_2} \sum_{j \in V} \sum_{i \in U} g_{ji} \\
+\end{aligned}
+$$
 
 # Problem 4
 
@@ -223,7 +394,6 @@ Order nodes according to Katz-Bonacich centrality for the particular case in whi
 In this case the order is as follows:
 
 ```{r, results='asis'}
-library(kableExtra)
 kable(output[alpha==2 & beta==0.25][order(-centr)][,.(centr,node)], col.names = c("Centrality","Node"), digits = 2)
 ```
 
