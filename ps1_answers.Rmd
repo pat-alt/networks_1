@@ -296,28 +296,12 @@ Consider the star network, in which there are n nodes with node 1, the hub, conn
 
 ## a)
 
+Without using matrices try to answer the following questions:
+
 <hr>
 
 ![](www/Problem_4_a.png)
-## a)
 
-Without using matrices try to answer the following questions:
-
-### (i)
-
-how many paths of length $k ≥ 1$ there are starting at $1$ and ending at $2$?
-
-<hr>
-
-#### TODO
-
-### (ii)
-
-how many cycles of length $k ≥ 1$ there are starting at $1$ and ending at $1$?
-
-<hr>
-
-#### TODO
 
 ## b)
 
@@ -408,6 +392,7 @@ $$
 && \mathbf{c}&=\alpha \left( \mathbf{1} + \beta G \mathbf{1} + \beta^2 G^2 \mathbf{1} + ... + \beta^5 G^5 \mathbf{1}   \right) \\
 \end{aligned}
 $$
+
 ```{r}
 alpha = 2
 beta = 0.25
@@ -669,23 +654,49 @@ Compare the top 10 nodes according to the previous two centrality measures.
 
 <hr>
 
-### TODO
+```{r}
+bands <- melt(bands, id.vars = "band")
+top_bands <- bands[order(variable, -value),.(band=band[1:10]),by=variable]
+top_bands[,rank:=1:.N,by=variable]
+top_bands <- dcast(top_bands,rank ~ variable, value.var = "band")
+common <- length(intersect(top_bands$centr_degree,top_bands$centr_eigen))
+```
 
-## d)
+The table below shows the top 10 nodes for the two different centrality measures. While the ranking is not exactly the same, the two measures share `r common` common nodes in the top 10.
 
-Compute the individual clustering coefficients of each node, and the average clustering coefficient. Compare this average clustering to the ratio $L/\begin{pmatrix}n \\2\end{pmatrix}$ of that network.
-
-<hr>
-
-### TO FINISH
-
-```{r, echo=TRUE}
-clust_coeff <- transitivity(g, type="local")
-bands[,clust:=clust_coeff]
-clust_avg <- transitivity(g, type="average")
-n <- nrow(G)
-L <- sum(G %*% rep(1, nrow(G)))
-ratio <- L/choose(n,2)
+```{r}
+kable(top_bands,col.names = c("Rank","Degree", "Eigen"))
 ```
 
 
+## d)
+
+Compute the individual clustering coefficients of each node, and the average clustering coefficient. Compare this average clustering to the ratio $L/ \binom{N}{2}$ of that network.
+
+<hr>
+
+Clustering coefficients are computed as follows:
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& C_i&= \frac{1}{d_i(d_i-1)} \sum_{j,k} G_{ij} G_{jk} G_{ki}\\
+\end{aligned}
+(\#eq:clust)
+\end{equation}
+$$
+
+In R this can be implemented as follows:
+
+```{r, code=readLines("R/utils.cluster_coeff.R"), eval=FALSE, echo=TRUE}
+```
+
+```{r, echo=TRUE}
+clust_coeff <- cluster_coeff(G)
+clust_avg <- mean(clust_coeff)
+n <- nrow(G)
+L <- sum(G %*% rep(1, nrow(G)))/2
+ratio <- L/choose(n,2)
+```
+
+The average clustering coefficient is `r clust_avg`, which compares to $L/\binom{N}{2}=`r ratio`$.
