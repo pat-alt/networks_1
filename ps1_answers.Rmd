@@ -35,7 +35,7 @@ The number of nodes with odd degree is even.
 
 <hr>
 
-![](www/ps1_1_a.png)
+Note that the sum of all degrees is equal to twice the number of links $L$ [@barabasi2013network]. Since $2L$ for $L\in\mathbb{N}$ is even, we know that the number of all degrees is even. Now suppose there was an odd number of odd degrees. Then the number of all degrees would also be odd. This is a contradiction. 
 
 ## b)
 
@@ -205,11 +205,11 @@ Calculate the average degree of the purple nodes and the average degree of the g
 
 <hr>
 
-Average degrees can be computed as $\frac{1}{6}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(1:6,7:11)}$ and $\frac{1}{5}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(7:11,1:6)}$, respectively:
+For the average degree of an undirected network we have $\bar{d}= \frac{1}{N} \sum_{i=1}^{N}d_i = \frac{2L}{N}$. Here, the average degrees can be computed as $\frac{1}{N_U} \sum_{i\in U} \{G \mathbf{1}_d\}_{i}$ and $\frac{1}{N_V} \sum_{i\in V} \{G \mathbf{1}_d\}_{i}$, respectively:
 
 ```{r}
 library(kableExtra)
-degrees <- data.table(d = c(G %*% rep(1,ncol(G))), set=c(rep("U",6),rep("V",5)))
+degrees <- data.table(d = centrality_degree(G)/2, set=c(rep("U",6),rep("V",5)))
 kable(degrees[,.(avg=mean(d)),by=set], col.names=c("Set", "Avg. degree"))
 ```
 
@@ -222,8 +222,8 @@ Calculate the average degree in each of the two network projections. Is it surpr
 Average degrees can be computed as $\frac{1}{d} ( \mathbf{1}_d^T G_S \mathbf{1}_d)$ where $S\in\{U,V\}$:
 
 ```{r, echo=TRUE}
-avg_d_U <- as.numeric(rep(1,ncol(G_U)) %*% G_U %*% rep(1,ncol(G_U))/ncol(G_U))
-avg_d_V <- as.numeric(rep(1,ncol(G_V)) %*% G_V %*% rep(1,ncol(G_V))/ncol(G_V))
+avg_d_U <- as.numeric(rep(1,ncol(G_U)) %*% centrality_degree(G_U)/(2*ncol(G_U)))
+avg_d_V <- as.numeric(rep(1,ncol(G_V)) %*% centrality_degree(G_V)/(2*ncol(G_V)))
 ```
 
 This yields $\bar{d}_U=`r avg_d_U`$ and $\bar{d}_V=`r avg_d_V`$. It is not surprising that they differ. Consider this simple, but illustrative example of a bipartite network: let $U={A,B}$ and $V=[1,100]$ and suppose each node in $V$ is connected to $A$, with only node $1$ connected to $B$. Then clearly $A$'s degree within the whole network is 100 and $B$'s degree is one. Within the projection of $U$ both $A$ and $B$ have the same degree 1. 
@@ -264,7 +264,7 @@ If $N1<<N2$ , what can you say about the network density, that is the total numb
 
 <hr>
 
-The smaller the ratio $\frac{N_1}{N_2}$ where $N_1<N2$ (or equivalently the smaller $\frac{N_2}{N_1}$ where $N_2<N_1$), the smaller $L_{max}$.
+The smaller the ratio $\frac{N_1}{N_2}$ where $N_1<N2$ (or equivalently the smaller $\frac{N_2}{N_1}$ where $N_2<N_1$), the smaller $L_{max}$. For a given total number of links $L$ the density of the network therefore increases. 
 
 ### (iv)
 
@@ -272,16 +272,18 @@ Find an expression connecting $N1$, $N2$ and the average degree for the two sets
 
 <hr>
 
-As per above, we can denote more generally
+There are two ways to read this answer. Firstly, it may be asking for connections between $N_1, 〈k1〉$ and between $N_2, 〈k2〉$, respectively. And secondly, it may be asking linking all four variables. We will show both here.
+
+With respect to the first question, as per above, we can denote more generally
 
 $$
 \begin{aligned}
-&& 〈k1〉&=\frac{1}{N_1}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{(1:N_1,(N_1+1):N)} \\
-&& 〈k2〉&=\frac{1}{N_2}\{\mathbf{1}_d^T G \mathbf{1}_d\}_{( (N_1+1):N, 1:N_1)} \\
+&& 〈k1〉&=\frac{1}{N_1} \sum_{i\in U} \{G \mathbf{1}_d\}_{i} \\
+&& 〈k2〉&=\frac{1}{N_2} \sum_{j\in V} \{G \mathbf{1}_d\}_{j}\\
 \end{aligned}
 $$
 
-where $G$ is the adjacency matrix. Alternatively, we can use a notation in terms of sums:
+where $G$ is the adjacency matrix and $U,V$ denote the two sets of size $N_1,N_2$, respectively. Alternatively, we can use a notation in terms of sums:
 
 $$
 \begin{aligned}
@@ -289,6 +291,32 @@ $$
 && 〈k2〉&=\frac{1}{N_2} \sum_{j \in V} \sum_{i \in U} g_{ji} \\
 \end{aligned}
 $$
+
+With respect to the second question, note that for the total number of links we have:
+
+$$
+\begin{aligned}
+&& L&= \frac{1}{2}\sum_{i=1}^Nk_i= \frac{1}{2}\sum_{u \in U}k_u \sum_{v \in V}k_v=L_1+L_2 \\
+\end{aligned}
+$$
+
+Note further that for the average degree we have $〈k〉= \frac{2L}{N}$ and hence
+
+$$
+\begin{aligned}
+&& 〈k〉&= \frac{2}{N} \left( L_1 + L_2 \right)\\
+\end{aligned}
+$$
+
+which we can rearrange to
+
+$$
+\begin{aligned}
+&& 〈k〉&= 〈k_1〉+ 〈k_2〉+ \frac{N_2^2L_1+N_1^2L_2}{N_1N_2(N_1+N_2)}
+ \\
+\end{aligned}
+$$
+
 
 # Problem 4
 
@@ -372,10 +400,10 @@ and for odd powers:
 $$
 \begin{aligned}
 && G^k&= \begin{pmatrix}
-0 & (n-1)^{( \frac{k-1}{2}-1)} & ... & (n-1)^{( \frac{k-1}{2}-1)} \\
-(n-1)^{( \frac{k-1}{2}-1)} & 0 & ... & 0  \\
+0 & (n-1)^{( \frac{k-1}{2})} & ... & (n-1)^{( \frac{k-1}{2})} \\
+(n-1)^{( \frac{k-1}{2})} & 0 & ... & 0  \\
 ... & ... & ... & ... \\
-(n-1)^{( \frac{k-1}{2}-1)} & 0 & ... & 0
+(n-1)^{( \frac{k-1}{2})} & 0 & ... & 0
 \end{pmatrix}
  \\
 \end{aligned}
@@ -627,11 +655,12 @@ Degree centrality can be implemented in R as follows:
 ```{r, code=readLines("R/utils.centrality_degree.R"),eval=F,echo=T}
 ```
 
-Below we compute the degree centralities of the nodes and store them in a data frame.
+Note that be default this function computes that *total centrality* as per @barabasi2013network. Below we compute the degree centralities of the nodes and store them in a data frame.
 
 ```{r, echo=TRUE}
 centr <- centrality_degree(G)
 bands[,centr_degree:=centr]
+DT::datatable(bands, colnames = c("Band", "Centrality"))
 ```
 
 ## b) 
@@ -645,6 +674,7 @@ Below we compute the eigenvector centralities of the nodes and store them in the
 ```{r, echo=TRUE}
 centr <- centrality_eigen(G)
 bands[,centr_eigen:=centr]
+DT::datatable(bands[,.(band, centr_eigen)], colnames = c("Band", "Centrality"))
 ```
 
 
@@ -680,7 +710,7 @@ Clustering coefficients are computed as follows:
 $$
 \begin{equation} 
 \begin{aligned}
-&& C_i&= \frac{1}{d_i(d_i-1)} \sum_{j,k} G_{ij} G_{jk} G_{ki}\\
+&& C_i&= \frac{1}{d_i(d_i-1)} \sum_{j,k} g_{ij} g_{jk} g_{ki}\\
 \end{aligned}
 (\#eq:clust)
 \end{equation}
@@ -699,4 +729,12 @@ L <- sum(G %*% rep(1, nrow(G)))/2
 ratio <- L/choose(n,2)
 ```
 
-The average clustering coefficient is `r clust_avg`, which compares to $L/\binom{N}{2}=`r ratio`$.
+The individual clustering coefficients can be inspected below:
+
+```{r}
+DT::datatable(data.table(band=unique(bands$band), clust=clust_coeff), colnames = c("Band", "Clustering coefficient"))
+```
+
+The average clustering coefficient is `r clust_avg`, which compares to $L/\binom{N}{2}=`r ratio`$. This means that clustering is not random, but systematic.
+
+# References
