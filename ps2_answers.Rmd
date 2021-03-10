@@ -41,13 +41,13 @@ then there exists an equilibrium formulation of PageRank:
 $$
 \begin{equation} 
 \begin{aligned}
-&& \mathbf{r}&=\mathbf{T}^T\mathbf{r} \\
+&& \mathbf{r}&=\mathbf{T}^T\mathbf{r}, & \mathbf{r}^T\mathbf{1}=1  \\
 \end{aligned}
 (\#eq:equi)
 \end{equation}
 $$
 
-The networks we are asked to analyse are shown below in Figures (\@ref(fig:net19)) to (\@ref(fig:net21)). It is straight-forward to see that all of them are strongly connected. In other words, for none of the networks can we find a single node from which we cannot reach all other nodes. With respect to aperiodicity, we can establish the following: in Figure (\@ref(fig:net19)) there are cycles of length 3 and length 4, hence the network is aperiodic; in Figure (\@ref(fig:net20)) there are multiple cycle of length $l=3$ and no cycles of other lengths, such that the greatest common divisor is 3 and the network in not aperiodic; finally in Figure (\@ref(fig:net21)) there are cycles of length 3 and 4, hence the network is aperiodic just like the one in (\@ref(fig:net19)).
+The networks we are asked to analyse are shown below in Figures (\@ref(fig:net19)) to (\@ref(fig:net21)). It is straight-forward to see that all of them are strongly connected. In other words, for none of the networks can we find a single node from which we cannot reach all other nodes. With respect to aperiodicity, we can establish the following: in Figure (\@ref(fig:net19)) there are cycles of length 3 and length 4, hence the network is aperiodic; in Figure (\@ref(fig:net20)) there are only cycles of length $l=3$ hence the network is aperiodic; finally in Figure (\@ref(fig:net21)) there are cycles of length 3 and 4, hence the network is aperiodic just like the one in (\@ref(fig:net19)).
 
 ```{r net19, fig.cap="Network 14.19 in @easley2010networks."}
 knitr::include_graphics("www/ps2_1_19.png")
@@ -61,11 +61,72 @@ knitr::include_graphics("www/ps2_1_20.png")
 knitr::include_graphics("www/ps2_1_21.png")
 ```
 
-Now we are asked to derive the steady-state PageRank by hand. We have tried to do this below for the network in Figure (\@ref(fig:net21)). As you can see the numbers seem to be converging somewhere, but after 9 painful iterations we gave up. 
+Now we are asked to derive the steady-state PageRank by hand. To do so we can simply solve the system of equations defined in \@ref(eq:equi) each time.
 
-```{r net21-manual, fig.cap="Network 14.21 in @easley2010networks."}
-knitr::include_graphics("www/ps2_1_21_manual.png")
+```{r t19}
+d <- 5
+G <- matrix(rep(0,d^2),d)
+G[1,c(2,3,4)] <- 1
+G[2,c(3,5)] <- 1
+G[3,c(5)] <- 1
+G[4,c(3,5)] <- 1
+G[5,c(1)] <- 1
+d_out <- diag(crossprod(t(G)))
+T_19 <- G / d_out
+T_lat <- matrix2latex(T_19)
 ```
+
+For the network in Figure (\@ref(fig:net19)), the corresponding transition matrix is:
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& \mathbf{T}&=`r T_lat` \\
+\end{aligned}
+(\#eq:t19)
+\end{equation}
+$$
+
+We can then solve $\mathbf{T}^T\mathbf{r}$ as follows:
+
+```{r net19-sol, fig.cap="Derivation of steady-state of network 14.19 in @easley2010networks."}
+knitr::include_graphics("www/ps2_1_19_sol.png")
+```
+
+Noting that we need to have $(\mathbf{T}^T\mathbf{r})^T\mathbf{1}=1$ we have for the steady-state PageRank vector: $\mathbf{r}^T=\frac{1}{10}(3,1,2,1,3)$, where the first entry corresponds to node $A$ and the last to node $E$.
+
+```{r t20}
+d <- 6
+G <- matrix(rep(0,d^2),d)
+G[1,c(2,3)] <- 1
+G[2,c(4,5)] <- 1
+G[3,c(5,6)] <- 1
+G[4,c(1)] <- 1
+G[5,c(1)] <- 1
+G[6,c(1)] <- 1
+d_out <- diag(crossprod(t(G)))
+T_20 <- G / d_out
+T_lat <- matrix2latex(T_20)
+```
+
+Similarly for the network in Figure (\@ref(fig:net20)) we have
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& \mathbf{T}&=`r T_lat` \\
+\end{aligned}
+(\#eq:t20)
+\end{equation}
+$$
+
+which solves to 
+
+```{r net20-sol,fig.cap="Derivation of steady-state of network 14.20 in @easley2010networks."}
+knitr::include_graphics("www/ps2_1_20_sol.png")
+```
+
+and hence $\mathbf{r}^T=\frac{1}{13}(4,2,2,1,2,1)$ for the steady-state PageRank.
 
 ```{r g21}
 d <- 6
@@ -77,104 +138,80 @@ G[4,6] <- 1
 G[5,c(4,6)] <- 1
 G[6,c(1,2)] <- 1
 d_out <- diag(crossprod(t(G)))
-T_ <- G / d_out
-T_lat <- matrix2latex(T_)
+T_21 <- G / d_out
+T_lat <- matrix2latex(T_21)
 ```
 
-As a sanity check we wrote a program in R that simply takes powers of the transition matrix and eventually converges to a steady state. Remaining with the network in Figure (\@ref(fig:net21)) for a moment, we have for the transition matrix:
+Finally, for the network in Figure (\@ref(fig:net20)) we have
 
 $$
 \begin{equation} 
 \begin{aligned}
 && \mathbf{T}&=`r T_lat` \\
 \end{aligned}
-(\#eq:T-21)
+(\#eq:t21)
 \end{equation}
 $$
 
-Below we implement the small program:
+which solves to 
 
-```{r, echo=TRUE}
-T_temp <- T_
-tol <- 1e-9
-k <- 2
-converged <- FALSE
-while(!converged) {
-  T_new <- T_%^%k
-  converged <- all(abs(T_temp - T_new) < tol)
-  T_temp <- T_new
-  k <- k + 1
-}
-r <- diag(T_temp)
-r_lat <- matrix2latex(matrix(r))
+```{r net21-sol, fig.cap="Derivation of steady-state of network 14.21 in @easley2010networks."}
+knitr::include_graphics("www/ps2_1_21_sol.png")
 ```
 
-It converges after $k=`r k`$ iterations. In other words we have $T^{(k+s)}=T^k$ for all $s>0$ and $k=`r k`$. A steady-state solution for the PageRank is given by the diagonal elements of $T^{`r k`}$, namely:
+and hence $\mathbf{r}^T= \frac{1}{13}(2, 2,1,1,3,4)$ for the steady-state PageRank.
 
-$$
-\begin{equation} 
-\begin{aligned}
-&& \mathbf{r}&=\mathbf{T}^T\mathbf{r}=`r r_lat` \\
-\end{aligned}
-(\#eq:pr)
-\end{equation}
-$$
+<!-- As a sanity check we wrote a program in R that simply takes powers of the transition matrix and eventually converges to a steady state.  -->
 
-As a final sanity check we can also use the `igraph` package
+<!-- Below we implement the small program: -->
 
-```{r, echo=TRUE}
-library(igraph)
-g <- graph_from_adjacency_matrix(G)
-r_igraph <- page_rank(g)$vector
-r_lat <- matrix2latex(matrix(r_igraph))
+<!-- ```{r, code=readLines("R/utils.page_rank.R"), echo=TRUE, eval=FALSE} -->
+<!-- ``` -->
+
+<!-- We can apply this to the three transition matrices: -->
+
+<!-- ```{r} -->
+<!-- trans_mats <- list(T_19,T_20,T_21) -->
+<!-- output <- rbindlist( -->
+<!--   lapply( -->
+<!--     1:length(trans_mats), -->
+<!--     function(i) { -->
+<!--       T_ <- trans_mats[[i]] -->
+<!--       out <- page_rank(T_) -->
+<!--       return(data.table(network=i+18, page_rank=out$r, node=LETTERS[1:length(out$r)])) -->
+<!--     } -->
+<!--   ) -->
+<!-- ) -->
+<!-- ``` -->
+
+
+# 2.)
+
+## i)
+
+Find all the maximal cliques in the following network. Explain how can you find this list without making use of a computer.
+
+```{r net-clique, fig.cap="Networks."}
+knitr::include_graphics("www/ps2_2_net.png")
 ```
 
-which yields a similar result:
+<hr>
 
-$$
-\begin{equation} 
-\begin{aligned}
-&& \mathbf{r}_{\text{igraph}}&=`r r_lat` \\
-\end{aligned}
-(\#eq:pr)
-\end{equation}
-$$
-```{r g19}
-d <- 5
+Just looking at the network in Figure (\@ref(fig:net-clique)) it is clear that there are two cliques, one at the far left and one at the far right end, both of size 3. 
+
+```{r}
+d <- 10
 G <- matrix(rep(0,d^2),d)
-G[1,c(2,3,4)] <- 1
-G[2,c(3,5)] <- 1
-G[3,c(5)] <- 1
+G[1,c(2,3)] <- 1
+G[2,c(1,3)] <- 1
+G[3,c(1,2,4)] <- 1
 G[4,c(3,5)] <- 1
-G[5,c(1)] <- 1
-d_out <- diag(crossprod(t(G)))
-T_ <- G / d_out
-T_temp <- T_
-tol <- 1e-9
-k <- 2
-converged <- FALSE
-while(!converged) {
-  T_new <- T_%^%k
-  converged <- all(abs(T_temp - T_new) < tol)
-  T_temp <- T_new
-  k <- k + 1
-}
-r <- diag(T_temp)
-r_lat <- matrix2latex(matrix(r))
+G[5,c(4,6)] <- 1
+G[6,c(5,7)] <- 1
+G[7,c(6,8)] <- 1
+G[8,c(7,9,10)] <- 1
+G[9,c(8,10)] <- 1
+G[10,c(8,9)] <- 1
 ```
-
-
-For the network in Figure (\@ref(fig:net19)) we have refrained from trying to derive the steady-state by hand and instead used our program directly. In this case it converges after $k=`r k`$ iterations and yields the following vector:
-
-$$
-\begin{equation} 
-\begin{aligned}
-&& \mathbf{r}&=\mathbf{T}^T\mathbf{r}=`r r_lat` \\
-\end{aligned}
-(\#eq:pr-19)
-\end{equation}
-$$
-
-These values in fact correspond to the ones displayed in @easley2010networks.
 
 # References
