@@ -1,0 +1,25 @@
+---
+title: "Problem Set 2"
+author: "Patrick Altmeyer, Buelent Uendes, Antonios Vasileiadis"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
