@@ -196,9 +196,22 @@ Find all the maximal cliques in the following network. Explain how can you find 
 knitr::include_graphics("www/ps2_2_net.png")
 ```
 
-<hr>
+```{r}
+knitr::include_graphics("www/Problem_2_i.png")
+knitr::include_graphics("www/Problem_2_i_part2.png")
+```
 
-Just looking at the network in Figure (\@ref(fig:net-clique)) it is clear that there are two cliques, one at the far left and one at the far right end, both of size 3. 
+## ii)
+
+Using the SocNetV we can see that the maximal cliques in the karate data set is 36. The co-membership matrix can be also easily obtained (see attached picture).
+
+
+```{r}
+knitr::include_graphics("www/Maximal_clique_Karate.png")
+knitr::include_graphics("www/Co-membership_matrix_Karate.png")
+```
+
+For the interpretation, the diagonal elements of the symmetric co-membership matrix state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element i and j occur together in a maximal clique set. For example, node 1 and 2 occured 5 times together in different maximal clique sets.
 
 ```{r}
 d <- 10
