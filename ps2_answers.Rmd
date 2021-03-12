@@ -180,6 +180,37 @@ knitr::include_graphics("www/Co-membership_matrix_Karate.png")
 
 For the interpretation, the diagonal elements of the symmetric co-membership matrix state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element $i$ and $j$ occur together in a maximal clique set. For example, node 1 and 2 occurred 5 times together in different maximal clique sets.
 
+# 3)
+
+Solve all problems from Barabási, ch.9, except the initial one.
+
+## i)
+Consider a one dimensional lattice with N nodes that form a circle, where each node connects to its two neighbors. Partition the line into nc consecutive clusters of size Nc=N/nc.
+
+```{r}
+knitr::include_graphics("www.Problem_9_1.png/.png")
+```
+
+## ii)
+Consider a network consisting of a ring of nc cliques, each clique having Nc nodes and m(m–1)/2 links. The neighboring cliques are connected by a single link (Image 9.34). The network has an obvious community structure, each community corresponding to a clique.
+
+```{r}
+knitr::include_graphics("www.Problem_9_2.png/.png")
+knitr::include_graphics("www.Problem_9_2_2.png/.png")
+knitr::include_graphics("www.Problem_9_2_3.png/.png")
+knitr::include_graphics("www.Problem_9_2_4.png/.png")
+
+```
+
+## iii)
+Modularity Maximum.
+Show that the maximum value of modularity M defined in (9.12) cannot exceed one.
+
+```{r}
+knitr::include_graphics("www.Problem_9_2_5.png/.png")
+```
+
+
 # 4.)
 
 ```{r}
