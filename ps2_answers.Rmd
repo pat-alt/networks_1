@@ -154,6 +154,8 @@ kableExtra::kable(output, col.names = c("Network", "PageRank", "Node"), digits =
 
 # 2.)
 
+We define a clique as a subset of nodes in the network such that any pair of nodes in the clique is connected, i.e, it is a subset $S ⊂ N$ such that $g_{ij} = 0$ for every pair $i,j ∈ S$. A maximal clique is a clique that is maximal according to the previous property.
+
 ## i)
 
 Find all the maximal cliques in the following network. Explain how can you find this list without making use of a computer.
@@ -171,6 +173,10 @@ knitr::include_graphics("www/Problem_2_i_part2.png")
 
 ## ii)
 
+Consider Zachary’s karate club dataset. With the use of a computer, find a list of all its maximal cliques. Find as well a clique comembership matrix, explaining how to interpret the entries in that matrix.
+
+<hr>
+
 Using the SocNetV we can see that the maximal cliques in the karate data set is 36. The co-membership matrix can be also easily obtained (see attached picture).
 
 ```{r}
@@ -178,40 +184,59 @@ knitr::include_graphics("www/Maximal_clique_Karate.png")
 knitr::include_graphics("www/Co-membership_matrix_Karate.png")
 ```
 
-For the interpretation, the diagonal elements of the symmetric co-membership matrix state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element $i$ and $j$ occur together in a maximal clique set. For example, node 1 and 2 occurred 5 times together in different maximal clique sets.
+Similarly, in R we could find the maximum cliques as follows:
+
+```{r, fig.width=10}
+library(igraphdata)
+data("karate")
+max_c <-  max_cliques(karate)
+plot.igraph(karate, mark.groups = max_c)
+```
+
+For the interpretation of the symmetric co-membership matrix, the diagonal elements state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element $i$ and $j$ occur together in a maximal clique set. For example, node 1 and 2 occurred 5 times together in different maximal clique sets.
 
 # 3)
 
 Solve all problems from Barabási, ch.9, except the initial one.
 
 ## i)
-Consider a one dimensional lattice with N nodes that form a circle, where each node connects to its two neighbors. Partition the line into nc consecutive clusters of size Nc=N/nc.
+
+Consider a one dimensional lattice with N nodes that form a circle, where each node connects to its two neighbors. Partition the line into nc consecutive clusters of size $N_c=N/n_c$.
+
+<hr>
 
 ```{r}
-knitr::include_graphics("www.Problem_9_1.png/.png")
+knitr::include_graphics("www/Problem_9_1.png")
 ```
 
 ## ii)
-Consider a network consisting of a ring of nc cliques, each clique having Nc nodes and m(m–1)/2 links. The neighboring cliques are connected by a single link (Image 9.34). The network has an obvious community structure, each community corresponding to a clique.
+
+Consider a network consisting of a ring of $n_c$ cliques, each clique having $N_c$ nodes and $m(m–1)/2$ links. The neighboring cliques are connected by a single link (Image 9.34). The network has an obvious community structure, each community corresponding to a clique.
+
+<hr>
 
 ```{r}
-knitr::include_graphics("www.Problem_9_2.png/.png")
-knitr::include_graphics("www.Problem_9_2_2.png/.png")
-knitr::include_graphics("www.Problem_9_2_3.png/.png")
-knitr::include_graphics("www.Problem_9_2_4.png/.png")
-
+knitr::include_graphics("www/Problem_9_2.png")
+knitr::include_graphics("www/Problem_9_2_2.png")
+knitr::include_graphics("www/Problem_9_2_3.png")
+knitr::include_graphics("www/Problem_9_2_4.png")
 ```
 
 ## iii)
+
 Modularity Maximum.
 Show that the maximum value of modularity M defined in (9.12) cannot exceed one.
 
+<hr>
+
 ```{r}
-knitr::include_graphics("www.Problem_9_2_5.png/.png")
+knitr::include_graphics("www/Problem_9_5.png")
 ```
 
 
 # 4.)
+
+Consider the same network as in problem 2.
 
 ```{r}
 d <- 10
@@ -229,7 +254,13 @@ G[10,c(8,9)] <- 1
 g <- graph_from_adjacency_matrix(G, mode = "undirected")
 ```
 
+<hr>
+
 ## a)
+
+Apply the Girvan-Newman method of community detection and draw your resulting dendrogram. You should do this in two ways: with a computer, and without a computer, making computations by hand.
+
+<hr>
 
 By hand this can be done as follows:
 
@@ -246,6 +277,10 @@ plot_dendrogram(edge.betweenness.community(g),mode="hclust",use.modularity = TRU
 
 ## b)
 
+Use modularity to choose one particular layer in the dendrogram.
+
+<hr>
+
 In R `igraph::edge.betweenness.community(g)` chooses the partition with maximal modularity by default:
 
 ```{r, echo=TRUE}
@@ -253,7 +288,7 @@ clust <- edge.betweenness.community(g)
 plot(g, mark.groups = clust, main=sprintf("Optimal modularity: %0.2f", modularity(g, membership = clust$membership)))
 ```
 
-Computing the modularity by hand for each layer would be a tedious job, but we can make a few observations that simplify things.
+Computing the modularity by hand for each layer would be a tedious job, but we can make a few observations that simplify things and proceed as below:
 
 ```{r}
 knitr::include_graphics("www/ps2_4_b_hand_1.png")
@@ -263,6 +298,10 @@ knitr::include_graphics("www/ps2_4_b_hand_2.png")
 The values correspond to what `igraph` returns. Technically there are a few more intermediate layers we would have to check, but given we have already done this in R and identified the optimal layer, we skip this here (also to avoid repetition).
 
 ## c)
+
+Apply an agglomerative method of community detection with Jaccard’s distance and using complete linkage clustering. Compute the modularity in each step of the algorithm and check in which one modularity is maximal. Again, you have to do this in two different ways: with a computer, and making computations by hand.
+
+<hr>
 
 Manually this can be done as follows:
 
