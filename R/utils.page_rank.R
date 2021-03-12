@@ -1,4 +1,4 @@
-page_rank <- function(transition_mat, tol=1e-9, max_iter=100) {
+page_rank <- function(transition_mat, tol=1e-9, max_iter=1000) {
   T_ <- transition_mat
   T_temp <- transition_mat
   tol <- 1e-9
