@@ -162,6 +162,8 @@ Find all the maximal cliques in the following network. Explain how can you find 
 knitr::include_graphics("www/ps2_2_net.png")
 ```
 
+<hr>
+
 ```{r}
 knitr::include_graphics("www/Problem_2_i.png")
 knitr::include_graphics("www/Problem_2_i_part2.png")
@@ -171,29 +173,12 @@ knitr::include_graphics("www/Problem_2_i_part2.png")
 
 Using the SocNetV we can see that the maximal cliques in the karate data set is 36. The co-membership matrix can be also easily obtained (see attached picture).
 
-
 ```{r}
 knitr::include_graphics("www/Maximal_clique_Karate.png")
 knitr::include_graphics("www/Co-membership_matrix_Karate.png")
 ```
 
-For the interpretation, the diagonal elements of the symmetric co-membership matrix state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element i and j occur together in a maximal clique set. For example, node 1 and 2 occured 5 times together in different maximal clique sets.
-
-```{r}
-d <- 10
-G <- matrix(rep(0,d^2),d)
-G[1,c(2,3)] <- 1
-G[2,c(1,3)] <- 1
-G[3,c(1,2,4)] <- 1
-G[4,c(3,5)] <- 1
-G[5,c(4,6)] <- 1
-G[6,c(5,7)] <- 1
-G[7,c(6,8)] <- 1
-G[8,c(7,9,10)] <- 1
-G[9,c(8,10)] <- 1
-G[10,c(8,9)] <- 1
-g <- graph_from_adjacency_matrix(G, mode = "undirected")
-```
+For the interpretation, the diagonal elements of the symmetric co-membership matrix state how often a particular node is found in a maximal clique set. For example, node 1 is included 13 times in different maximal clique sets. The off-diagonal elements show how often element $i$ and $j$ occur together in a maximal clique set. For example, node 1 and 2 occurred 5 times together in different maximal clique sets.
 
 # 4.)
 
