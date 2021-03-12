@@ -233,9 +233,44 @@ The values correspond to what `igraph` returns. Technically there are a few more
 
 ## c)
 
+Manually this can be done as follows:
+
 ```{r}
 knitr::include_graphics("www/ps2_4_c_hand_1.png")
 knitr::include_graphics("www/ps2_4_c_hand_2.png")
+knitr::include_graphics("www/ps2_4_c_hand_3.png")
+```
+
+In R we can simply proceed as below which yields Figure (\@ref(fig:com-lin)). The merging from bottom to top corresponds to the steps we derived manually.
+
+```{r com-lin, fig.cap="Complete-linkage clustering."}
+hc <- hclust(proxy::dist(G,method="jaccard"))
+plot(hc)
+```
+
+Finally, we can also use R to compute the modularity at each step:
+
+```{r, echo=TRUE}
+step1 <- c(1,1,2,3,4,5,4,6,7,7)
+step2 <- c(1,1,2,1,4,5,4,6,7,7)
+step3 <- c(1,1,2,1,4,5,4,5,7,7)
+step4 <- rep(1,10)
+memberships <- list(
+  step1,
+  step2,
+  step3,
+  step4
+)
+output <- rbindlist(
+  lapply(
+    1:length(memberships),
+    function(i) {
+      M <- modularity(g,membership = memberships[[i]])
+      data.table(step=i,modularity=M)
+    }
+  )
+)
+kableExtra::kable(output, col.names = c("Step", "Modularity"))
 ```
 
 
