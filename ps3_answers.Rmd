@@ -1,0 +1,175 @@
+---
+title: "Problem Set 3"
+author: "Patrick Altmeyer"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+library(expm)
+library(igraph)
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
+
+# Exercise 1 - Erdos-Renyi
+
+## a)
+
+Using the model $G(n,p)$, create an undirected Erdos-Renyi network with 100 nodes
+and probability of each link equal to 0.02. For each of these networks:
+
+<hr>
+
+We can use a simple helper function to randomly generate a $G(n,p)$ model in R:
+
+```{r, code=readLines("R/utils.erdos_renyi.R"),echo=TRUE,eval=FALSE}
+```
+
+Let us set a seed and use the function to generate a random network:
+
+```{r}
+set.seed(42)
+G <- erdos_renyi()
+g <- graph_from_adjacency_matrix(G, mode = "undirected")
+```
+
+### i)
+
+use the Kamada-Kawai model to represent the network,
+
+<hr>
+
+```{r}
+coords <- igraph::layout.kamada.kawai(g)
+plot.igraph(g, layout=coords)
+```
+
+### ii)
+
+find its degree distribution; what is the degree of the more connected node? And what is the degree of the less connected one?
+
+<hr>
+
+```{r}
+d <- diag(crossprod(G))
+```
+
+
+The degree distribution can be computed through the following simple helper function:
+
+```{r, code=readLines("R/utils.degree_dist.R")}
+```
+
+For the randomly generated network Figure (\@ref(fig:deg-dist)) shows the corresponding degree distribution. Evidently, the more connected node is of degree of $d_{max}=`r max(d)`$ and the less connected node is of degree $d_{min}=`r min(d)`$.
+
+```{r deg-dist, fig.cap="Degree distribution of randomly generated network."}
+deg_dist <- degree_dist(G)
+```
+
+### iii)
+
+is there one or more than one connected components?
+
+<hr>
+
+```{r}
+comp <- components(g)
+n_comp <- comp$no
+```
+
+There are `r n_comp` components: `r sum(comp$csize>1)` of size greater than one and `r sum(comp$csize==1)` that count just one node:
+
+```{r}
+comp_greater_one <- unique(comp$membership[comp$membership %in% which(comp$csize>1)])
+mark_groups <- lapply(
+  comp_greater_one,
+  function(i) {
+    which(comp$membership==i)
+  }
+) 
+plot.igraph(g, layout=coords, mark.groups = mark_groups)
+```
+
+### iv)
+
+what is the average distance? And the diameter? Interpret the numbers you
+obtain.
+
+<hr>
+
+
+
+### v)
+
+what is the number of type 300 triads (according to M-A-N labeling, as described
+by Holland, Leinhardt and Davis) in the triad census report?
+
+<hr>
+
+### vi)
+
+find the local/individual clustering coefficient distribution. Compute the average
+clustering coefficient.
+
+<hr>
+
+## b)
+
+Repeat the exercise but with the probability of each link equal to 0.08.
+
+<hr>
+
+## Exercise 2 - Scale-Free (Barabasi-Albert’s model)
+
+Now create a directed network with 100 nodes using a linear preferential attachment model: in each period one new node enters in the network and creates one link towards another one; initially there is just one single isolated node. There is another parameter, the zero appeal. Explain first of all what is the definition of this parameter.
+
+### i)
+
+create first a network in which the zero appeal is equal to 0. What happens in that case? Why?
+
+<hr>
+
+### ii) 
+
+create now another network in which the zero appeal is equal to 1.
+
+<hr>
+
+### iii)
+
+plot the network using the Kamada-Kawai model.
+
+<hr>
+
+### iv)
+
+study the in-degree distribution.
+
+<hr>
+
+### v)
+
+transform the network you have obtained into an undirected one. What is the number of components in that network? What is the average distance? What is the diameter?
+
+<hr>
+
+### vi)
+
+explore what happens if we increase the zero appeal parameter.
+
+<hr>
