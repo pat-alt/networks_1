@@ -1,0 +1,127 @@
+---
+title: "Informal collaboration in financial economics"
+subtitle: "Report"
+author: "Patrick Altmeyer"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+library(expm)
+library(igraph)
+library(reticulate)
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
+
+- is the question relevant?
+
+- are network interactions relevant in that setting? Why?
+
+- what is/are the main takeaway(s) from the paper?
+
+- is there anything you particularly like or dislike from the methodology/analysis? Would you suggest a different/complementary approach?
+
+- do you think there are open issues/questions that could be considered?
+
+- is there anything that could extrapolate to other situations as well?
+
+- have you found in the paper what you were expecting? If not, how does it differ from your expectations?
+
+# Motivation {#mot}
+
+- Formal collaboration in research has been show to improve productivity
+- Less research has been done on the impact of informal collaboration on research outcomes: conferences, seminars, informal reviews from colleagues etc.
+- "Much if not most of the debate and discussion about economic ideas take place at the pre-working paper, workshop and working paper stages."
+
+# Contributions
+
+- The network of informal collaborations may be useful as explanatory variable when studying e.g. the determi- nants of scientific productivity. Moreover, it may serve as an interesting dependent variable in studies exploring the relationship of individual characteristics and social capital.
+
+# Data {#data}
+
+- novel dataset on informal collaboration in Financial Economics obtained from the acknowledgement sections of over 5, 000 published research papers
+
+- From the analysis we omit research assistants, editorial support and non-academic commenters (such as industry professionals or central bankers) if they are acknowledged as such. 
+
+**Researcher characteristics**
+
+- Combining both the number of citations and publications we measure prolificness using the Euclidean index of citations.14 
+
+- Next we define experience as the number of years between the first publication and the year of publication of the paper
+
+Gender is estimated from first names. 
+
+
+
+Data has been made publically available...
+
+```{python, warnings=FALSE}
+from json import loads
+from urllib.request import urlopen
+COFE = 'https://raw.githubusercontent.com/Michael-E-Rose/CoFE/master/acks_min.json'
+acks = loads(urlopen(COFE).read().decode("utf-8"))['data']
+```
+
+```{python, warnings=FALSE}
+from itertools import product
+import networkx as nx
+import numpy as np
+
+G = nx.Graph()
+for item in acks:
+    # Authors
+    auths = [a['label'] for a in item['authors']]
+    G.add_nodes_from(auths)
+    # Commenters
+    coms = [c['label'] for c in item.get('com', [])]
+    G.add_nodes_from(coms)
+    # Links
+    links = list(product(coms, auths))
+    G.add_edges_from(links)
+    
+A = nx.adjacency_matrix(G)
+```
+
+```{r}
+g <- graph_from_adjacency_matrix(py$A)
+```
+
+- Threads to validity: While strategic acknowledging is discouraged and can be costly, it remains the main threat to reliability measuring informal collaboration with acknowledgements data.
+
+# Methodology {#meth}
+
+-  In the network of infor- mal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
+
+Use different centrality measures: degree, eigen and betweenness. Focus is limited to "giant" component since centrality measures are not comparable across components (**DOUBLE CHECK. POTENTIAL SHORTFALL?**).
+
+- the effort brought forward in equilibrium corresponds to someone’s eigenvector centrality.
+
+- Since eigenvector centrality focuses on connectivity and influence only, but remains silent about the importance of a researcher for knowledge flows, we also study betweenness centrality
+
+- More senior researchers are less influential in the network (lower eigenvector centrality), while more prolific researchers are more likely to connect otherwise disparate research communities (higher betweenness centrality). 
+
+# Findings {#findings}
+
+- researcher’s position in this network is predictive of her future productivity and the scholarly impact of the papers she comments on
+
+- We find positive but rather weak correlations (around 0.5) between scientific productivity measures and the number of acknowledged contributions.
+
+- Female researchers are ackowledged considerably less
+
+- find centralities in the network of informal collaboration to have higher explanatory power than centralities in the co-author networks.
+

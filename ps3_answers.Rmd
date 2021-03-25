@@ -13,16 +13,23 @@ bibliography: bib.bib
 
 ```{r setup, include=FALSE}
 rm(list=ls())
-knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(data.table)
 library(expm)
 library(igraph)
+library(networkD3)
 helper_functions <- list.files("R")
 lapply(
   helper_functions,
   function(i) {
     source(file = file.path("R",i))
   }
+)
+igraph_options(
+  vertex.size=15,
+  vertex.color="blue",
+  vertex.label.color="white",
+  vertex.label.cex=0.9
 )
 ```
 
@@ -31,7 +38,7 @@ lapply(
 ## a)
 
 Using the model $G(n,p)$, create an undirected Erdos-Renyi network with 100 nodes
-and probability of each link equal to 0.02. For each of these networks:
+and probability of each link equal to 0.02. 
 
 <hr>
 
@@ -46,17 +53,153 @@ Let us set a seed and use the function to generate a random network:
 set.seed(42)
 G <- erdos_renyi()
 g <- graph_from_adjacency_matrix(G, mode = "undirected")
+fwrite(G, "data/erdos_renyi_0.02.csv")
 ```
 
-### i)
+### i) {.tabset}
 
 use the Kamada-Kawai model to represent the network,
 
 <hr>
 
+#### Static
+
 ```{r}
 coords <- igraph::layout.kamada.kawai(g)
 plot.igraph(g, layout=coords)
+```
+
+#### Interactive
+
+```{r}
+networkD3::simpleNetwork(igraph::as_data_frame(g), zoom = TRUE)
+```
+
+
+### ii)
+
+find its degree distribution; what is the degree of the more connected node? And what is the degree of the less connected one?
+
+<hr>
+
+```{r}
+d <- diag(crossprod(G))
+```
+
+The degree distribution can be computed through the following simple helper function:
+
+```{r, code=readLines("R/utils.degree_dist.R")}
+```
+
+For the randomly generated network Figure (\@ref(fig:deg-dist)) shows the corresponding degree distribution. Evidently, the more connected node is of degree of $d_{max}=`r max(d)`$ and the less connected node is of degree $d_{min}=`r min(d)`$. The distribution looks anything but Gaussian: there are many nodes with small degree and only few with high degree.
+
+```{r deg-dist, fig.cap="Degree distribution of randomly generated network."}
+deg_dist <- degree_dist(G)
+```
+
+### iii) 
+
+is there one or more than one connected components?
+
+<hr>
+
+```{r}
+comp <- components(g)
+n_comp <- comp$no
+```
+
+There are `r n_comp` components: `r sum(comp$csize>1)` of size greater than one and `r sum(comp$csize==1)` that count just one node:
+
+```{r}
+comp_greater_one <- unique(comp$membership[comp$membership %in% which(comp$csize>1)])
+mark_groups <- lapply(
+  comp_greater_one,
+  function(i) {
+    which(comp$membership==i)
+  }
+) 
+plot.igraph(g, layout=coords, mark.groups = mark_groups)
+```
+
+### iv)
+
+what is the average distance? And the diameter? Interpret the numbers you
+obtain.
+
+<hr>
+
+```{r}
+diam <- igraph::diameter(g, directed = FALSE)
+avg_dist <- igraph::mean_distance(g,directed = FALSE)
+```
+
+The average distance is `r avg_dist` and the diameter `r diam`. That means that on average the shortest path between two nodes is around `r round(avg_dist)` and the longest path between any two nodes is `r diam`. These numbers are fairly high (compared to what we will see further below for $p=0.08$). That is not surprising, since the probability of a link between any two nodes is quite low: like in a poorly connected public transport network, the average distance one has to travel is therefore long.
+
+### v)
+
+what is the number of type 300 triads (according to M-A-N labeling, as described
+by Holland, Leinhardt and Davis) in the triad census report?
+
+<hr>
+
+```{r}
+triad300 <- triad_census(g)[16]
+```
+
+The number of type 300 triads is `r triad300`. That means that there is only `r triad300` fully connected triad of nodes. Given the small likelihood of connections, this is not surprising.
+
+### vi)
+
+find the local/individual clustering coefficient distribution. Compute the average
+clustering coefficient.
+
+<hr>
+
+```{r}
+clust_coeff <- cluster_coeff(G)
+clust_avg <- mean(clust_coeff)
+```
+
+The individual clustering coefficients can be inspected below:
+
+```{r}
+DT::datatable(data.table(node=1:nrow(G), clust=clust_coeff), colnames = c("Node", "Clustering coefficient"))
+```
+
+The average clustering coefficient is `r clust_avg`. These values are small, which is unsurprising: recall that the individual clustering coefficient can be thought of as a weighted measure of a closed triad. Since there is only `r triad300` closed triad, the individual clustering coefficients of all but `r triad300*3` nodes are all equal to zero.
+
+## b)
+
+Repeat the exercise but with the probability of each link equal to 0.08.
+
+<hr>
+
+Let us set a seed and use the function to generate a new random network:
+
+```{r}
+set.seed(42)
+G <- erdos_renyi(p=0.08)
+g <- graph_from_adjacency_matrix(G, mode = "undirected")
+fwrite(G, "data/erdos_renyi_0.08.csv")
+```
+
+### i) {.tabset}
+
+use the Kamada-Kawai model to represent the network,
+
+<hr>
+
+#### Static
+
+```{r}
+coords <- igraph::layout.kamada.kawai(g)
+plot.igraph(g, layout=coords)
+```
+
+#### Interactive
+
+```{r}
+networkD3::simpleNetwork(igraph::as_data_frame(g), zoom = TRUE)
 ```
 
 ### ii)
@@ -69,15 +212,9 @@ find its degree distribution; what is the degree of the more connected node? And
 d <- diag(crossprod(G))
 ```
 
+For the randomly generated network Figure (\@ref(fig:deg-dist)) shows the corresponding degree distribution. Evidently, the more connected node is of degree of $d_{max}=`r max(d)`$ and the less connected node is of degree $d_{min}=`r min(d)`$. The distribution looks more Gaussian than before, consistent with what we would expect.
 
-The degree distribution can be computed through the following simple helper function:
-
-```{r, code=readLines("R/utils.degree_dist.R")}
-```
-
-For the randomly generated network Figure (\@ref(fig:deg-dist)) shows the corresponding degree distribution. Evidently, the more connected node is of degree of $d_{max}=`r max(d)`$ and the less connected node is of degree $d_{min}=`r min(d)`$.
-
-```{r deg-dist, fig.cap="Degree distribution of randomly generated network."}
+```{r deg-dist-2, fig.cap="Degree distribution of randomly generated network."}
 deg_dist <- degree_dist(G)
 ```
 
@@ -112,7 +249,12 @@ obtain.
 
 <hr>
 
+```{r}
+diam <- igraph::diameter(g, directed = FALSE)
+avg_dist <- igraph::mean_distance(g,directed = FALSE)
+```
 
+The average distance is `r avg_dist` and the diameter `r diam`. That means that on average the shortest path between two nodes is around `r round(avg_dist)` and the longest path between any two nodes is `r diam`. The distances are now shorter: once again, you can think of a public transport network that is now more densely connected and hence average travel lengths are shorter.
 
 ### v)
 
@@ -121,6 +263,12 @@ by Holland, Leinhardt and Davis) in the triad census report?
 
 <hr>
 
+```{r}
+triad300 <- triad_census(g)[16]
+```
+
+The number of type 300 triads is `r triad300`. Clearly, this is higher than before, as one would expect given the higher likelihood that any two nodes are connected.
+
 ### vi)
 
 find the local/individual clustering coefficient distribution. Compute the average
@@ -128,48 +276,150 @@ clustering coefficient.
 
 <hr>
 
-## b)
+```{r}
+clust_coeff <- cluster_coeff(G)
+clust_avg <- mean(clust_coeff)
+```
 
-Repeat the exercise but with the probability of each link equal to 0.08.
+The individual clustering coefficients can be inspected below:
 
-<hr>
+```{r}
+DT::datatable(data.table(node=1:nrow(G), clust=clust_coeff), colnames = c("Node", "Clustering coefficient"))
+```
 
-## Exercise 2 - Scale-Free (Barabasi-Albert’s model)
+The average clustering coefficient is `r clust_avg`, which unsurprisingly is higher than for the case where $p=0.02$.
+
+# Exercise 2 - Scale-Free (Barabasi-Albert’s model)
 
 Now create a directed network with 100 nodes using a linear preferential attachment model: in each period one new node enters in the network and creates one link towards another one; initially there is just one single isolated node. There is another parameter, the zero appeal. Explain first of all what is the definition of this parameter.
 
-### i)
+<hr>
+
+The *zero appeal* corresponds to the ‘attractiveness’ of the vertices with no adjacent edges. In particular, let $P(i,t)$ denote the probability that node $i$ is chosen in the current period $t$ then we have 
+
+$$
+\begin{equation} 
+\begin{aligned}
+&& P(i,t)&\sim({d^{\text{in}}_{i,t}})^{\gamma}+a \\
+\end{aligned}
+(\#eq:barabasi)
+\end{equation}
+$$
+
+where $a$ corresponds to the *zero appeal*. This means that even if node $i$ has in-degree equal to 0 at time $t$ for positive values of $a$ there is a non-zero probability that node $i$ is chosen. In other words, the larger $a$, the smaller the likelihood of "rich-get-richer" dynamics. Note also that clearly for $\gamma=1$ the preferential attachment is linear with respect to the in-degree.
+
+## i) {.tabset}
 
 create first a network in which the zero appeal is equal to 0. What happens in that case? Why?
 
 <hr>
 
-### ii) 
+Figure (\@ref(fig:zero-appeal-zero)) shows a randomly generated scale-free network with zero appeal equal to 0 (the `power` argument is set to its default value 1, which corresponds to linear preferential attachment as we saw above). In this case the first node is the hub and all other nodes are referred to as spokes. This is because the probability in (\@ref(eq:barabasi)) is equal to 0 for all nodes except the first one.
+
+```{r zero-appeal-zero, fig.cap="Scale-free network with 0 zero appeal."}
+g <- igraph::ba.game(100,power = 1,zero.appeal = 1e-50)
+G <- as.matrix(as_adjacency_matrix(g))
+fwrite(G, "data/scale_free_0.csv")
+```
+
+### Static
+
+```{r}
+coords <- igraph::layout.kamada.kawai(g)
+plot.igraph(g, layout=coords)
+```
+
+### Interactive
+
+```{r}
+networkD3::simpleNetwork(igraph::as_data_frame(g), zoom = TRUE)
+```
+
+## ii) 
 
 create now another network in which the zero appeal is equal to 1.
 
 <hr>
 
-### iii)
+I create the graph below:
+
+```{r}
+g <- igraph::ba.game(100,power = 1,zero.appeal = 1)
+G <- as.matrix(as_adjacency_matrix(g))
+fwrite(G, "data/scale_free_1.csv")
+```
+
+## iii) {.tabset}
 
 plot the network using the Kamada-Kawai model.
 
 <hr>
 
-### iv)
+In this case we still have a hub-spoke structure, but there are more than just one hub (see below). This is expected given the effect of $a$ already discussed above.
+
+### Static
+
+```{r hub}
+coords <- igraph::layout.kamada.kawai(g)
+plot.igraph(g, layout=coords)
+```
+
+### Interactive
+
+```{r}
+networkD3::simpleNetwork(igraph::as_data_frame(g), zoom = TRUE)
+```
+
+## iv)
 
 study the in-degree distribution.
 
 <hr>
 
-### v)
+The in-degree distribution has a long right tail. This is consistent with the hub-spoke structure of the network in Figure (\@ref(fig:)).
+
+```{r}
+d <- degree_dist(G)
+```
+
+
+## v)
 
 transform the network you have obtained into an undirected one. What is the number of components in that network? What is the average distance? What is the diameter?
 
 <hr>
 
-### vi)
+```{r}
+g <- as.undirected(g)
+comp <- components(g)
+n_comp <- comp$no
+avg_dist <- mean_distance(g)
+diam <- diameter(g)
+```
+
+The number of components is `r n_comp`. The average distance is `r avg_dist` and the diameter `r diam`. These values are higher than what we would have observed with $a=0$. One can reason as follows: if there is one single hub to which all other nodes are connected, it is easy to travel from any one spoke to another, following the route through the hub. In the real world, for example, airports like the one in Dubai represent such hubs: pretty much any destination in the southern hemisphere can be reached from some place in northern hemisphere via two long-distance flights through Dubai. Here, with $a>0$ we have more than just one hub, so average path lengths are longer. 
+
+## vi)
 
 explore what happens if we increase the zero appeal parameter.
 
 <hr>
+
+An increase in the zero appeal parameter makes it more likely for nodes to be chosen at time $t$ independent of their in-degree. The effect diminishes for as alpha grows very large. This is because even as for very large values of $a$ the in-degree has no effect on the probability of being chosen, nodes that were added earlier have more time to get chosen randomly (and in early periods compete with less other nodes). The same logic applies to other measures we looked at above: for example, average distances will tend to increase in $a$, for reasons already discussed.
+
+```{r}
+par(mfrow=c(2,2))
+appeal <- c(0.1,10,100,1000)
+invisible(
+  lapply(
+    1:length(appeal),
+    function(i) {
+      g <- igraph::ba.game(100,power = 1,zero.appeal = appeal[i])
+      G <- as.matrix(as_adjacency_matrix(g))
+      d <- degree_dist(G, plot = FALSE)
+      barplot(d, main=sprintf("Zero appeal: %0.1f", appeal[i]))
+    }
+  )
+)
+```
+
