@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100&display=swap');
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+}
+blockquote {
+  font-family: 'Montserrat', sans-serif;
+}
+code {
+  font-family: Consolas, Courier, "Courier New", 'STKaiti', 'KaiTi', 'SimKai', monospace;
+}
+pre, code {
+  font-size: .95em;
+}

@@ -4,8 +4,11 @@ subtitle: "Report"
 author: "Patrick Altmeyer"
 date: "`r format(Sys.Date(), '%d %B, %Y')`"
 output: 
+  bookdown::pdf_document2:
+    toc: false
+    number_sections: false
   bookdown::html_document2:
-    code_folding: show
+    code_folding: hide
     toc: true
     toc_float: true
     number_sections: false
@@ -19,6 +22,7 @@ library(data.table)
 library(expm)
 library(igraph)
 library(reticulate)
+library(networkD3)
 helper_functions <- list.files("R")
 lapply(
   helper_functions,
@@ -42,17 +46,21 @@ lapply(
 
 - have you found in the paper what you were expecting? If not, how does it differ from your expectations?
 
-# Motivation {#mot}
+## Motivation {#mot}
 
-- Formal collaboration in research has been show to improve productivity
-- Less research has been done on the impact of informal collaboration on research outcomes: conferences, seminars, informal reviews from colleagues etc.
+@rose20185
+@barabasi2013network
+
+Formal collaboration in research has been show to improve productivity. Less research has been done on the impact of informal collaboration on research outcomes: conferences, seminars, informal reviews by colleagues. More than half of the papers analysed here involve all three kinds of informal collaboration. 
+
 - "Much if not most of the debate and discussion about economic ideas take place at the pre-working paper, workshop and working paper stages."
+- Too strong authority (or leadership) may have a negative effect, as it prevents theories to be challenged (Azoulay et al., 2019). Too much close networks might result in biased academic reviews (Carrell et al., 2020). 
 
-# Contributions
+## Contributions
 
 - The network of informal collaborations may be useful as explanatory variable when studying e.g. the determi- nants of scientific productivity. Moreover, it may serve as an interesting dependent variable in studies exploring the relationship of individual characteristics and social capital.
 
-# Data {#data}
+## Data {#data}
 
 - novel dataset on informal collaboration in Financial Economics obtained from the acknowledgement sections of over 5, 000 published research papers
 
@@ -103,7 +111,27 @@ g <- graph_from_adjacency_matrix(py$A)
 
 - Threads to validity: While strategic acknowledging is discouraged and can be costly, it remains the main threat to reliability measuring informal collaboration with acknowledgements data.
 
-# Methodology {#meth}
+## Methodology {#meth}
+
+### Effect of informal collaboration on success
+
+Find that with the exception of *conferences* all forms of informal collaboration significantly contribute to the success of a paper. The trend seems to be driven by younger authors who appear to network differently. 
+
+![](www/rep_success.png)
+
+### Who gets acknowledged
+
+Only a minority of researchers acts as both authors and commenters at the same time. Find that researcher charactersitics have significant impact on lieklihood of being acknowledged. 
+
+### Reciprocity and inter-generational transfer
+
+There is a tendency to help researchers in return for past or future help. More than two thirds of all papers in the sample involve commenters commenting on the work of co-authors, commenters or department colleagues.
+
+Another explanation my be that older, more experienced researchers choose to comment in order to support younger colleagues. The sample period is too small to establish conclusive evidence, but some interesting observations can nonetheless be made: commenters ten to have between 7 and 20 years of experience. 
+
+### Network analysis
+
+Network of informal collaboration is much more dense than network of co-authorship. But density of both networks has decreased over time, which is attributed to a vast influx of researchers. 
 
 -  In the network of infor- mal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
 
@@ -115,7 +143,9 @@ Use different centrality measures: degree, eigen and betweenness. Focus is limit
 
 - More senior researchers are less influential in the network (lower eigenvector centrality), while more prolific researchers are more likely to connect otherwise disparate research communities (higher betweenness centrality). 
 
-# Findings {#findings}
+Correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connects clusters of researchers.
+
+## Findings {#findings}
 
 - researcher’s position in this network is predictive of her future productivity and the scholarly impact of the papers she comments on
 
@@ -125,3 +155,26 @@ Use different centrality measures: degree, eigen and betweenness. Focus is limit
 
 - find centralities in the network of informal collaboration to have higher explanatory power than centralities in the co-author networks.
 
+- Conditional having an acknowledgement, the average top journal publication acknowledges almost twice as many commenters as the average non-top journal publication (10.8 vs. 6.2).
+
+Co-authorship and conference participation has increased over time, while number of commenters and seminars has remained stable. It also appears that younger researchers have been more likely to acknowledge commenters and more generally make use of informal collaboration.
+
+- Notably Ductor et al. (2014) show that an economist’s future productivity can be forecasted using variables derived from a co-author network. 
+
+-  network of informal collaboration contains information not em- bedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
+
+Argue that this should help identify promising candidates during the hiring process (based on the commenters they are connected to). **REVERSE CAUSALITY**
+
+Network centrality has impact on success of paper:
+
+- first, the commenters’ network centrality contains information for both citation count and journal publications
+
+- Second, and most importantly, models with centralities computed in the network of informal collaboration outperform those models with centralities computed in the co-author network.
+
+- Finally, the centrality of authors and commenters matter for publication in crucial ways. Specif- ically, betweenness centrality and eigenvector centrality of authors and commenters in both networks are correlated in different ways with the dependent variables. 
+
+- This finding suggests that authors and commenters that connect different communities (high betweenness centrality) are less likely to publish in one of the top journals although their papers are cited more than the average of the journal
+
+\pagebreak
+
+## References {-}
