@@ -1,6 +1,6 @@
 ---
 title: "Informal collaboration in financial economics"
-subtitle: "Report"
+subtitle: "Final report"
 author: "Patrick Altmeyer"
 date: "`r format(Sys.Date(), '%d %B, %Y')`"
 output: 
@@ -32,51 +32,17 @@ lapply(
 )
 ```
 
-- is the question relevant?
+@rose20185 set out to analyse how informal collaboration among scholars affects research outcomes. To do so they use a dataset comprising meta data of more than 5000 articles from the academic literature on Financial Economics published between 1997 and 2011. 
+Although they are hesitant to draw and causal connections, the authors find significant links between informal networking - conferences, seminars and paper reviews - and the success of papers and ultimately researchers. The estimated relationships are stronger than for formal co-authorship, which had been the primary focus of previous research in the line of literature. Perhaps not surprisingly then, more than half of the papers analysed in @rose20185 involve all three kinds of informal collaboration. The findings set out in the paper are relevant not just to the hiring committees of academic institutions, but also young researchers at the beginning of their academic careers, who @rose20185 find to more actively seek informal collaboration than their predecessors. Perhaps their methodological and data work is an even more valuable contribution. Their network of informal collaborations is publicly available and can be used to understand the drivers of scientific productivity. More importantly, their methodology is reproducible and in fact has already been applied to other fields of science (@dong2021cross and @rose2020discussants).
 
-- are network interactions relevant in that setting? Why?
+In this short note I will first briefly summarize the methodology and data used in @rose20185. The following [section](findings) then summarizes their main empirical findings (section \@ref(findings)). The final [section](crit) offers a critical review of their work in context of the broader literature. 
 
-- what is/are the main takeaway(s) from the paper?
+## @rose20185
 
-- is there anything you particularly like or dislike from the methodology/analysis? Would you suggest a different/complementary approach?
+### Data and methodology {#data}
 
-- do you think there are open issues/questions that could be considered?
-
-- is there anything that could extrapolate to other situations as well?
-
-- have you found in the paper what you were expecting? If not, how does it differ from your expectations?
-
-## Motivation {#mot}
-
-@rose20185
-@barabasi2013network
-
-Formal collaboration in research has been show to improve productivity. Less research has been done on the impact of informal collaboration on research outcomes: conferences, seminars, informal reviews by colleagues. More than half of the papers analysed here involve all three kinds of informal collaboration. 
-
-- "Much if not most of the debate and discussion about economic ideas take place at the pre-working paper, workshop and working paper stages."
-- Too strong authority (or leadership) may have a negative effect, as it prevents theories to be challenged (Azoulay et al., 2019). Too much close networks might result in biased academic reviews (Carrell et al., 2020). 
-
-## Contributions
-
-- The network of informal collaborations may be useful as explanatory variable when studying e.g. the determi- nants of scientific productivity. Moreover, it may serve as an interesting dependent variable in studies exploring the relationship of individual characteristics and social capital.
-
-## Data {#data}
-
-- novel dataset on informal collaboration in Financial Economics obtained from the acknowledgement sections of over 5, 000 published research papers
-
-- From the analysis we omit research assistants, editorial support and non-academic commenters (such as industry professionals or central bankers) if they are acknowledged as such. 
-
-**Researcher characteristics**
-
-- Combining both the number of citations and publications we measure prolificness using the Euclidean index of citations.14 
-
-- Next we define experience as the number of years between the first publication and the year of publication of the paper
-
-Gender is estimated from first names. 
-
-
-
-Data has been made publically available...
+The network of informal collaboration in Financial Networks is a novel data set derived from the acknowledgement sections of over 5000 published research papers from three top journals -- The Journal of Finance, The Review of Financial Studies, the Journal of Financial Economics -- and three second-tier journals -- the Journal of Financial Intermediation, the Journal of Money, Credit & Banking, and the Journal of Banking and Finance. 
+The raw data has been made freely [available](https://github.com/Michael-E-Rose/CoFE) along with a short demonstration of how to link authors and commenters in a graph. 
 
 ```{python, warnings=FALSE}
 from json import loads
@@ -109,31 +75,34 @@ A = nx.adjacency_matrix(G)
 g <- graph_from_adjacency_matrix(py$A)
 ```
 
-- Threads to validity: While strategic acknowledging is discouraged and can be costly, it remains the main threat to reliability measuring informal collaboration with acknowledgements data.
 
-## Methodology {#meth}
+The networks they build go beyond the simple...
 
-### Effect of informal collaboration on success
+#### Leading questions
 
-Find that with the exception of *conferences* all forms of informal collaboration significantly contribute to the success of a paper. The trend seems to be driven by younger authors who appear to network differently. 
+Before turning to what we commonly understand as network analysis, @rose20185 demonstrate the usefulness of their data through a number of simple regression models. The purpose of these empirical exercises is to shed light on a few leading questions: whether informal collaboration actually improves research, what type individuals engage (or are engaged) in the informal network and why researchers choose to form informal ties. 
+
+To be able to answer these questions @rose20185 use the data underlying the network to derive a number of researcher characteristics including an individual's *prolificness*, experience and gender. The former is measured through a simple proxy measure based on their citations and publications. Experience is defined as the number of years between the first publication and the year of publication of the paper. Gender is estimated from authors names. @rose20185 limit their attention to academic authors, omitting from the analysis any research assistants, non-academic advisers and editorial board members. The latter are removed from the analysis since their names can be expected to show up regularly in the acknowledgements section, simply due to their role as editors. Aside from researcher characteristics, the data comes equipped with a set of variables relating to the intensity of informal collaboration associated with individual papers. Those include the number of seminars attended, the number of conferences attended as well as the number of commenters. 
+
+With that data at hand the authors proceed to answer the leading questions empirically. With respect to the first question they estimate several modifications of the following model
 
 ![](www/rep_success.png)
 
-### Who gets acknowledged
+where success of a paper $p$ is measured in terms of its citation and acceptance by a top journal. Their estimates provide statistically significant evidence that with the exception of *conferences* all forms of informal collaboration contribute to the success of a paper. Descriptive statistics seem to demonstrate that it is mainly younger authors who increasingly rely on informal networking.
+
+Turning to the second question about who engages in informal collaboration @rose20185 estimate variants of the following model
+
+![](www/rep_collab.png) 
 
 Only a minority of researchers acts as both authors and commenters at the same time. Find that researcher charactersitics have significant impact on lieklihood of being acknowledged. 
 
-### Reciprocity and inter-generational transfer
+Finally, with respect to the third leading question about researcher's incentives to seek informal ties, the authors simply look at distributional properties of the underlying sample. They find that there is a tendency to help researchers in return for past or future help: more than two thirds of all papers in the sample involve commenters commenting on the work of co-authors, their own commenters or department colleagues. Another possible driver of informal collaboration put forward by the authors revovlves around inter-generational transfers: older, more experienced researchers may choose to comment in order to support younger colleagues. The sample period is too small to establish conclusive evidence, but sample distributions nonetheless reveal that commenters ten to have between 7 and 20 years of experience. 
 
-There is a tendency to help researchers in return for past or future help. More than two thirds of all papers in the sample involve commenters commenting on the work of co-authors, commenters or department colleagues.
-
-Another explanation my be that older, more experienced researchers choose to comment in order to support younger colleagues. The sample period is too small to establish conclusive evidence, but some interesting observations can nonetheless be made: commenters ten to have between 7 and 20 years of experience. 
-
-### Network analysis
+#### Network analysis
 
 Network of informal collaboration is much more dense than network of co-authorship. But density of both networks has decreased over time, which is attributed to a vast influx of researchers. 
 
--  In the network of infor- mal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
+-  In the network of informal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
 
 Use different centrality measures: degree, eigen and betweenness. Focus is limited to "giant" component since centrality measures are not comparable across components (**DOUBLE CHECK. POTENTIAL SHORTFALL?**).
 
@@ -145,7 +114,9 @@ Use different centrality measures: degree, eigen and betweenness. Focus is limit
 
 Correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connects clusters of researchers.
 
-## Findings {#findings}
+### Findings {#findings}
+
+*what is/are the main takeaway(s) from the paper?*
 
 - researcher’s position in this network is predictive of her future productivity and the scholarly impact of the papers she comments on
 
@@ -174,6 +145,35 @@ Network centrality has impact on success of paper:
 - Finally, the centrality of authors and commenters matter for publication in crucial ways. Specif- ically, betweenness centrality and eigenvector centrality of authors and commenters in both networks are correlated in different ways with the dependent variables. 
 
 - This finding suggests that authors and commenters that connect different communities (high betweenness centrality) are less likely to publish in one of the top journals although their papers are cited more than the average of the journal
+
+## Critical review {#crit}
+
+### Threats to validity
+
+- Threads to validity: While strategic acknowledging is discouraged and can be costly, it remains the main threat to reliability measuring informal collaboration with acknowledgements data.
+
+
+The rationale for excluding industry professionals and central bankers from the analysis is not very clear. After all, these professionals play an important role in academic research around Financial Economics: they attend and organise conferences, can often provide a unique first-hand perspective on financial markets and regularly produce research published in academic journals themselves. 
+
+### Related literature
+
+While they do mention... - Too strong authority (or leadership) may have a negative effect, as it prevents theories to be challenged (Azoulay et al., 2019). Too much close networks might result in biased academic reviews (Carrell et al., 2020). 
+... the focus in their conclusion is 
+
+1. @rose2020discussants: Even among a set of papers that is highly selected on expected quality, discussants matter for top journal publication. Conditional on having a discussant, a
+paper’s citation count increases in the discussant’s prolificness. Using social network analysis we rule out a diffusion channel through which citations accumulate because discussants diffuse information about the paper within their social network.
+
+2. @dong2021cross: show that preferential allocation of publications through success-breeds-success engenders disparity in institutions’ research output, while acceleration in the growth of collaboration reduces the dispersion.
+
+
+
+*is there anything you particularly like or dislike from the methodology/analysis? Would you suggest a different/complementary approach?*
+
+*do you think there are open issues/questions that could be considered?*
+
+*is there anything that could extrapolate to other situations as well?*
+
+*have you found in the paper what you were expecting? If not, how does it differ from your expectations?*
 
 \pagebreak
 
