@@ -42,7 +42,7 @@ In this short note I will first briefly summarize the methodology and data used 
 ### Data and methodology {#data}
 
 The network of informal collaboration in Financial Networks is a novel data set derived from the acknowledgement sections of over 5000 published research papers from three top journals -- The Journal of Finance, The Review of Financial Studies, the Journal of Financial Economics -- and three second-tier journals -- the Journal of Financial Intermediation, the Journal of Money, Credit & Banking, and the Journal of Banking and Finance. 
-The raw data has been made freely [available](https://github.com/Michael-E-Rose/CoFE) along with a short demonstration of how to link authors and commenters in a graph. 
+The raw data has been made freely [available](https://github.com/Michael-E-Rose/CoFE) along with a short demonstration of how to link authors and commenters in a graph.
 
 ```{python, warnings=FALSE}
 from json import loads
@@ -52,21 +52,45 @@ acks = loads(urlopen(COFE).read().decode("utf-8"))['data']
 ```
 
 ```{python, warnings=FALSE}
-from itertools import product
+from itertools import product, combinations
+from functools import reduce
 import networkx as nx
 import numpy as np
 
-G = nx.Graph()
-for item in acks:
+years = list(reduce(lambda x,y: x if y['year'] in x else x+[y['year']], acks, [acks[0]['year']]))
+years.sort()
+
+def build_networks(years=years,acks=acks,informal=True):
+  networks = {str(year): nx.DiGraph() for year in years}
+  for item in acks:
+    year = str(item['year'])
+    G = networks[year]
+    w = 1/len(item['authors'])
     # Authors
     auths = [a['label'] for a in item['authors']]
     G.add_nodes_from(auths)
     # Commenters
     coms = [c['label'] for c in item.get('com', [])]
     G.add_nodes_from(coms)
-    # Links
-    links = list(product(coms, auths))
-    G.add_edges_from(links)
+    # Links:
+    links = list(combinations(auths, 2)) # formal
+    if informal:
+      links += list(product(coms, auths)) # informal
+    links = [tuple(list(item) + [w]) for item in links]
+    G.add_weighted_edges_from(links)
+  # Merge over three-year intervals:
+  networks_merged = {str(year): nx.Graph() for year in years[2:]}
+  for i in range(2,len(networks)):
+    t_lag_2 = str(years[i-2])
+    t_lag_1 = str(years[i-1])
+    t_lag_0 = str(years[i])
+    networks_merged[str(years[i])] = nx.compose(nx.compose(networks[t_lag_2],networks[t_lag_1]),networks[t_lag_0])
+  return networks_merged
+
+networks_informal = build_networks()
+networks_formal =  build_networks(informal=False)
+
+
     
 A = nx.adjacency_matrix(G)
 ```
@@ -75,10 +99,11 @@ A = nx.adjacency_matrix(G)
 g <- graph_from_adjacency_matrix(py$A)
 ```
 
+@rose20185 use the data to construct two graphs: one describing the network informal collaboration and one describing the network of co-authorship. In the former, edges are directed and weighted. Arrows point from author $i$ to her commenter $j$ who she acknowledges. Weights simply correspond to the inverse number of authors of any paper $k$. In the case of co-authorship network, links are undirected but still in a sense weighted as elements $h_{ij}$ correspond to the number of publications any two co-authors produced. Both networks are built from the same time series of research publications introduced [above](data).
 
 The networks they build go beyond the simple...
 
-#### Leading questions
+### Leading questions
 
 Before turning to what we commonly understand as network analysis, @rose20185 demonstrate the usefulness of their data through a number of simple regression models. The purpose of these empirical exercises is to shed light on a few leading questions: whether informal collaboration actually improves research, what type individuals engage (or are engaged) in the informal network and why researchers choose to form informal ties. 
 
@@ -94,15 +119,23 @@ Turning to the second question about who engages in informal collaboration @rose
 
 ![](www/rep_collab.png) 
 
-Only a minority of researchers acts as both authors and commenters at the same time. Find that researcher charactersitics have significant impact on lieklihood of being acknowledged. 
+where the dependent variable is a measure of how many times a reasearcher was included in the acknowledgments section of a paper. Only a minority of researchers acts as both authors and commenters at the same time, so this separation into producers and helpers of research as the authors describe it seems reasonable. The empirical estimates suggest that researcher charactersitics have significant impact on likelihood of being acknowledged. Most strikingly perhaps, gender appears to play an important role with female researchers up to 20% less likely to find their names in the acknowledgement sections. 
 
 Finally, with respect to the third leading question about researcher's incentives to seek informal ties, the authors simply look at distributional properties of the underlying sample. They find that there is a tendency to help researchers in return for past or future help: more than two thirds of all papers in the sample involve commenters commenting on the work of co-authors, their own commenters or department colleagues. Another possible driver of informal collaboration put forward by the authors revovlves around inter-generational transfers: older, more experienced researchers may choose to comment in order to support younger colleagues. The sample period is too small to establish conclusive evidence, but sample distributions nonetheless reveal that commenters ten to have between 7 and 20 years of experience. 
 
-#### Network analysis
+### Network analysis
 
-Network of informal collaboration is much more dense than network of co-authorship. But density of both networks has decreased over time, which is attributed to a vast influx of researchers. 
+In the context of network science, the part of @rose20185 we turn to next is really the core of the paper. The authors first briefly present summary statistics for two different networks: firstly, the network of informal collaboration already introduced above and secondly a network of co-authorship. They then move on to perform a forecasting exercise in the spirit of @ductor2014social in order to gauge how well information derived from the two networks can forecast future productivity of researchers. Next, @rose20185 also analyse the impact of network variables on the success of individual papers. Finally, they also investigate what drives centrality of researchers. We shall now briefly review each of these exercises. 
+
+#### Macroproperties of both networks
+
+Network of informal collaboration is much more dense than network of co-authorship. But density of both networks has decreased over time, which is attributed to a vast influx of researchers.
 
 -  In the network of informal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
+
+#### Forecasting researcher's productivity 
+
+Both networks are derived from paper are dynamic in the sense that they involve a time dimension
 
 Use different centrality measures: degree, eigen and betweenness. Focus is limited to "giant" component since centrality measures are not comparable across components (**DOUBLE CHECK. POTENTIAL SHORTFALL?**).
 
@@ -110,11 +143,30 @@ Use different centrality measures: degree, eigen and betweenness. Focus is limit
 
 - Since eigenvector centrality focuses on connectivity and influence only, but remains silent about the importance of a researcher for knowledge flows, we also study betweenness centrality
 
-- More senior researchers are less influential in the network (lower eigenvector centrality), while more prolific researchers are more likely to connect otherwise disparate research communities (higher betweenness centrality). 
-
 Correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connects clusters of researchers.
 
-### Findings {#findings}
+-  network of informal collaboration contains information not em- bedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
+
+Argue that this should help identify promising candidates during the hiring process (based on the commenters they are connected to). **REVERSE CAUSALITY**
+
+#### Success of papers
+
+Network centrality has impact on success of paper:
+
+- first, the commenters’ network centrality contains information for both citation count and journal publications
+
+- Second, and most importantly, models with centralities computed in the network of informal collaboration outperform those models with centralities computed in the co-author network.
+
+- Finally, the centrality of authors and commenters matter for publication in crucial ways. Specif- ically, betweenness centrality and eigenvector centrality of authors and commenters in both networks are correlated in different ways with the dependent variables. 
+
+- This finding suggests that authors and commenters that connect different communities (high betweenness centrality) are less likely to publish in one of the top journals although their papers are cited more than the average of the journal
+
+#### Centrality of researchers
+
+
+- More senior researchers are less influential in the network (lower eigenvector centrality), while more prolific researchers are more likely to connect otherwise disparate research communities (higher betweenness centrality). 
+
+
 
 *what is/are the main takeaway(s) from the paper?*
 
@@ -131,20 +183,6 @@ Correlation between eigenvector centrality and betweenness centrality is not hig
 Co-authorship and conference participation has increased over time, while number of commenters and seminars has remained stable. It also appears that younger researchers have been more likely to acknowledge commenters and more generally make use of informal collaboration.
 
 - Notably Ductor et al. (2014) show that an economist’s future productivity can be forecasted using variables derived from a co-author network. 
-
--  network of informal collaboration contains information not em- bedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
-
-Argue that this should help identify promising candidates during the hiring process (based on the commenters they are connected to). **REVERSE CAUSALITY**
-
-Network centrality has impact on success of paper:
-
-- first, the commenters’ network centrality contains information for both citation count and journal publications
-
-- Second, and most importantly, models with centralities computed in the network of informal collaboration outperform those models with centralities computed in the co-author network.
-
-- Finally, the centrality of authors and commenters matter for publication in crucial ways. Specif- ically, betweenness centrality and eigenvector centrality of authors and commenters in both networks are correlated in different ways with the dependent variables. 
-
-- This finding suggests that authors and commenters that connect different communities (high betweenness centrality) are less likely to publish in one of the top journals although their papers are cited more than the average of the journal
 
 ## Critical review {#crit}
 
