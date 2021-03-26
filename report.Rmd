@@ -23,6 +23,8 @@ library(expm)
 library(igraph)
 library(reticulate)
 library(networkD3)
+library(ggplot2)
+theme_set(theme_bw())
 helper_functions <- list.files("R")
 lapply(
   helper_functions,
@@ -61,7 +63,10 @@ years = list(reduce(lambda x,y: x if y['year'] in x else x+[y['year']], acks, [a
 years.sort()
 
 def build_networks(years=years,acks=acks,informal=True):
-  networks = {str(year): nx.DiGraph() for year in years}
+  if informal:
+    networks = {str(year): nx.DiGraph() for year in years}
+  else:
+    networks = {str(year): nx.Graph() for year in years}
   for item in acks:
     year = str(item['year'])
     G = networks[year]
@@ -85,29 +90,60 @@ def build_networks(years=years,acks=acks,informal=True):
     t_lag_1 = str(years[i-1])
     t_lag_0 = str(years[i])
     networks_merged[str(years[i])] = nx.compose(nx.compose(networks[t_lag_2],networks[t_lag_1]),networks[t_lag_0])
-  return networks_merged
+  adj_matrices = [nx.adjacency_matrix(v) for v in networks_merged.values()]
+  return networks_merged, adj_matrices
 
-networks_informal = build_networks()
-networks_formal =  build_networks(informal=False)
-
-
-    
-A = nx.adjacency_matrix(G)
+networks_informal, adj_mats_informal = build_networks()
+networks_formal, adj_mats_formal =  build_networks(informal=False)
 ```
 
 ```{r}
-g <- graph_from_adjacency_matrix(py$A)
+years <- py$years[3:length(py$years)]
+g_informal <- lapply(
+  py$adj_mats_informal,
+  function(item) {
+    graph_from_adjacency_matrix(item, weighted = TRUE)
+  }
+)
+names(g_informal) <- years
+g_formal <- lapply(
+  py$adj_mats_formal,
+  function(item) {
+    graph_from_adjacency_matrix(item, weighted = TRUE)
+  }
+)
+names(g_formal) <- years
 ```
 
-@rose20185 use the data to construct two graphs: one describing the network informal collaboration and one describing the network of co-authorship. In the former, edges are directed and weighted. Arrows point from author $i$ to her commenter $j$ who she acknowledges. Weights simply correspond to the inverse number of authors of any paper $k$. In the case of co-authorship network, links are undirected but still in a sense weighted as elements $h_{ij}$ correspond to the number of publications any two co-authors produced. Both networks are built from the same time series of research publications introduced [above](data).
+@rose20185 use the data to construct two graphs: one describing the network informal collaboration and one describing the network of co-authorship. In the former, edges are directed and weighted. Arrows point from author $i$ to her commenter $j$ who she acknowledges. Weights simply correspond to the inverse number of authors of any paper $k$. In the case of co-authorship network, links are still weighted, but undirected with elements $h_{ij}$ of the adjacency matrix corresponding to the number of publications any two co-authors produced. Both networks are built from the same time series of research publications introduced [above](data). Figure \@ref(fig:networks) shows the evolution over time of the number of links in the two networks. It illustrates two interesting points: firstly, both networks have seen massive growth over the sample period, which the authors attribute partially to more active engagement in networking by younger researchers; and secondly, the number of informal ties between researchers far exceeds the number of co-authorships.
 
-The networks they build go beyond the simple...
+```{r networks, fig.height=3, fig.cap="The evolution of the number of links in the two types of networks. At each time $t$ the networks include relationships formed in $t-2$, $t-1$ and $t$ as in @rose20185."}
+dt_plot <- rbindlist(
+  lapply(
+    1:length(years),
+    function(i) {
+      size <- c(gsize(g_informal[[as.character(years[i])]])-gsize(g_formal[[as.character(years[i])]]),gsize(g_formal[[as.character(years[i])]]))
+      type <- factor(c("informal", "formal"), levels = c("informal", "formal"))
+      data.table(size=size,type=type,year=years[i])
+    }
+  )
+) 
+levels(dt_plot$type) <- c("Informal","Co-authorship")
+p <- ggplot(data = dt_plot, aes(x=year, y=size, linetype=type)) +
+  geom_col(alpha=0, colour="black") +
+  scale_linetype_manual(name="Network:", values = c("dashed","solid")) +
+  labs(
+    y="Number of links",
+    y="Year"
+  )
+p
+```
 
 ### Leading questions
 
 Before turning to what we commonly understand as network analysis, @rose20185 demonstrate the usefulness of their data through a number of simple regression models. The purpose of these empirical exercises is to shed light on a few leading questions: whether informal collaboration actually improves research, what type individuals engage (or are engaged) in the informal network and why researchers choose to form informal ties. 
 
-To be able to answer these questions @rose20185 use the data underlying the network to derive a number of researcher characteristics including an individual's *prolificness*, experience and gender. The former is measured through a simple proxy measure based on their citations and publications. Experience is defined as the number of years between the first publication and the year of publication of the paper. Gender is estimated from authors names. @rose20185 limit their attention to academic authors, omitting from the analysis any research assistants, non-academic advisers and editorial board members. The latter are removed from the analysis since their names can be expected to show up regularly in the acknowledgements section, simply due to their role as editors. Aside from researcher characteristics, the data comes equipped with a set of variables relating to the intensity of informal collaboration associated with individual papers. Those include the number of seminars attended, the number of conferences attended as well as the number of commenters. 
+To be able to answer these questions @rose20185 use the data underlying the network to derive a number of researcher characteristics including an individual's prolificness, experience and gender. The former is measured through a simple proxy measure based on their citations and publications. Experience is defined as the number of years between the first publication and the year of publication of the paper. Gender is estimated from authors names. @rose20185 limit their attention to academic authors, omitting from the analysis any research assistants, non-academic advisers and editorial board members. The latter are removed from the analysis since their names can be expected to show up regularly in the acknowledgements section, simply due to their role as editors. Aside from researcher characteristics, the data comes equipped with a set of variables relating to the intensity of informal collaboration associated with individual papers. Those include the number of seminars attended, the number of conferences attended as well as the number of commenters. 
 
 With that data at hand the authors proceed to answer the leading questions empirically. With respect to the first question they estimate several modifications of the following model
 
@@ -145,7 +181,7 @@ Use different centrality measures: degree, eigen and betweenness. Focus is limit
 
 Correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connects clusters of researchers.
 
--  network of informal collaboration contains information not em- bedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
+-  network of informal collaboration contains information not embedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
 
 Argue that this should help identify promising candidates during the hiring process (based on the commenters they are connected to). **REVERSE CAUSALITY**
 
@@ -203,7 +239,42 @@ paper’s citation count increases in the discussant’s prolificness. Using soc
 
 2. @dong2021cross: show that preferential allocation of publications through success-breeds-success engenders disparity in institutions’ research output, while acceleration in the growth of collaboration reduces the dispersion.
 
-
+```{r degrees, fig.cap="Distribution of out-degrees of the two types of networks. At each time $t$ the networks include relationships formed in $t-2$, $t-1$ and $t$ as in @rose20185."}
+library(ggridges)
+theme_set(theme_minimal())
+get_max_component <- function(g) {
+  comp <- components(g)
+  biggest_cluster_id <- which.max(comp$csize)
+  # ids
+  vert_ids <- V(g)[comp$membership == biggest_cluster_id]
+  # subgraph
+  return(igraph::induced_subgraph(g, vert_ids))
+}
+dt_plot <- rbindlist(
+  lapply(
+    1:length(years),
+    function(i) {
+      # Informal:
+      g <- get_max_component(g_informal[[as.character(years[i])]])
+      informal <- degree(g, mode = "out")
+      g <- get_max_component(g_formal[[as.character(years[i])]])
+      formal <- degree(g, mode = "out")
+      degrees <- c(informal,formal)
+      type <- factor(c(rep("informal", length(informal)), rep("formal", length(formal))), levels = c("informal", "formal"))
+      data.table(degree=degrees,type=type,year=years[i])
+    }
+  )
+) 
+levels(dt_plot$type) <- c("Informal","Co-authorship")
+dt_plot[,year:=as.factor(year)]
+p <- ggplot(dt_plot[degree!=0], aes(x = log(degree), y = year, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 3, size = 0.3, rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = "Degree (logs):", option = "C") +
+  scale_y_discrete(limits=rev) +
+  facet_wrap(~type) +
+  labs(x='Degree (logs)',y="Year") 
+p
+```
 
 *is there anything you particularly like or dislike from the methodology/analysis? Would you suggest a different/complementary approach?*
 
