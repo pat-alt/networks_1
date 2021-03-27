@@ -35,9 +35,7 @@ lapply(
 ```
 
 @rose20185 set out to analyse how informal collaboration among scholars affects research outcomes. To do so they use a dataset comprising meta data of more than 5000 articles from the academic literature on Financial Economics published between 1997 and 2011. 
-Although they are hesitant to draw and causal connections, the authors find significant links between informal networking - conferences, seminars and paper reviews - and the success of papers and ultimately researchers. The estimated relationships are stronger than for formal co-authorship, which had been the primary focus of previous research in the line of literature. Perhaps not surprisingly then, more than half of the papers analysed in @rose20185 involve all three kinds of informal collaboration. The findings set out in the paper are relevant not just to the hiring committees of academic institutions, but also young researchers at the beginning of their academic careers, who @rose20185 find to more actively seek informal collaboration than their predecessors. Perhaps their methodological and data work is an even more valuable contribution. Their network of informal collaborations is publicly available and can be used to understand the drivers of scientific productivity. More importantly, their methodology is reproducible and in fact has already been applied to other fields of science (@dong2021cross and @rose2020discussants).
-
-In this short note I will first briefly summarize the methodology and data used in @rose20185. The following [section](findings) then summarizes their main empirical findings (section \@ref(findings)). The final [section](crit) offers a critical review of their work in context of the broader literature. 
+Although they are hesitant to draw and causal connections, the authors find significant links between informal networking - conferences, seminars and paper reviews - and the success of papers and ultimately researchers. The estimated relationships are stronger than for formal co-authorship, which had been the primary focus of previous research in the line of literature. Perhaps not surprisingly then, more than half of the papers analysed in @rose20185 involve all three kinds of informal collaboration. The findings set out in the paper are relevant not just to the hiring committees of academic institutions, but also young researchers at the beginning of their academic careers, who @rose20185 find to more actively seek informal collaboration than their predecessors. Perhaps their methodological and data work is an even more valuable contribution. Their network of informal collaborations is publicly available and can be used to understand the drivers of scientific productivity. More importantly, their methodology is reproducible and in fact has already been applied to other fields of science (@dong2021cross and @rose2020discussants). In what follows I will first briefly summarize the methodology and findings in @rose20185. I will then critically review of their work in context of the broader literature. 
 
 ## @rose20185
 
@@ -139,7 +137,7 @@ p <- ggplot(data = dt_plot, aes(x=year, y=size, linetype=type)) +
 p
 ```
 
-### Leading questions
+### Leading questions {#lead}
 
 Before turning to what we commonly understand as network analysis, @rose20185 demonstrate the usefulness of their data through a number of simple regression models. The purpose of these empirical exercises is to shed light on a few leading questions: whether informal collaboration actually improves research, what type individuals engage (or are engaged) in the informal network and why researchers choose to form informal ties. 
 
@@ -147,13 +145,25 @@ To be able to answer these questions @rose20185 use the data underlying the netw
 
 With that data at hand the authors proceed to answer the leading questions empirically. With respect to the first question they estimate several modifications of the following model
 
-![](www/rep_success.png)
+\begin{equation} 
+\begin{aligned}
+&& \text{Success}_p&= \alpha_1\text{Paper Characteristics}_{p,t-1} + \beta_1 \text{No. of seminars}_p + \beta_2 \text{No. of conferences}_p\\
+&& &+\beta_3\text{No. of commenters}_p + \beta_4 \text{Commenter quality}_p + \gamma \mathbf{D}_{\text{Journal}_p}+\mathbf{D}_t+\varepsilon_p \\
+\end{aligned}
+(\#eq:success)
+\end{equation}
 
 where success of a paper $p$ is measured in terms of its citation and acceptance by a top journal. Their estimates provide statistically significant evidence that with the exception of *conferences* all forms of informal collaboration contribute to the success of a paper. Descriptive statistics seem to demonstrate that it is mainly younger authors who increasingly rely on informal networking.
 
 Turning to the second question about who engages in informal collaboration @rose20185 estimate variants of the following model
 
-![](www/rep_collab.png) 
+\begin{equation} 
+\begin{aligned}
+&& \text{Collaboration}_{i,t}&=\beta_0+\beta_1\text{female}_i+\beta_2\text{Euclid}_{i,t}+\beta_3\text{Publication Stock}_{i,t} \\
+&& &+\beta_4\text{Citation Stock}_{i,t}+\beta_5\text{Experience}_{i,t}+\gamma\mathbf{D}_{Female_i}+\varepsilon_{i,t} \\
+\end{aligned}
+(\#eq:col)
+\end{equation}
 
 where the dependent variable is a measure of how many times a reasearcher was included in the acknowledgments section of a paper. Only a minority of researchers acts as both authors and commenters at the same time, so this separation into producers and helpers of research as the authors describe it seems reasonable. The empirical estimates suggest that researcher charactersitics have significant impact on likelihood of being acknowledged. Most strikingly perhaps, gender appears to play an important role with female researchers up to 20% less likely to find their names in the acknowledgement sections. 
 
@@ -165,79 +175,55 @@ In the context of network science, the part of @rose20185 we turn to next is rea
 
 #### Macroproperties of both networks
 
-Network of informal collaboration is much more dense than network of co-authorship. But density of both networks has decreased over time, which is attributed to a vast influx of researchers.
+The network of informal collaboration is much more connected, in the sense that one giant component captures more than 95% of all researchers. But the average clustering coefficient, which can be interpreted as the network's local density [@barabasi2013network], is higher for the co-authorship network. Intuitively, these observations indicate that the social network of informal collaboration is more inclusive overall. The co-authorship network is composed of many components, but ties within these tend to be stronger on average than in the more loosely connected giant component comprising most of the informal network.
 
--  In the network of informal collaboration, two researchers are connected with a weighted directed link whenever one acknowledges the other on a published paper in our dataset. 
+```{r giant, eval=FALSE, fig.height=3, fig.cap="The evolution of the number of links in the two types of networks. At each time $t$ the networks include relationships formed in $t-2$, $t-1$ and $t$ as in @rose20185."}
+dt_plot <- rbindlist(
+  lapply(
+    1:length(years),
+    function(i) {
+      informal <- max(components(g_informal[[as.character(years[i])]])$csize)/gorder(g_informal[[as.character(years[i])]])
+      formal <- max(components(g_formal[[as.character(years[i])]])$csize)/gorder(g_formal[[as.character(years[i])]])
+      size <- c(informal, formal)
+      type <- factor(c("informal", "formal"), levels = c("informal", "formal"))
+      data.table(size=size,type=type,year=years[i])
+    }
+  )
+) 
+levels(dt_plot$type) <- c("Informal","Co-authorship")
+p <- ggplot(data = dt_plot, aes(x=year, y=size, linetype=type)) +
+  geom_col(alpha=0, colour="black", position = "dodge") +
+  scale_linetype_manual(name="Network:", values = c("dashed","solid")) +
+  labs(
+    y="Number of links",
+    y="Year"
+  )
+p
+```
+
+@rose20185 look at three different centrality measures: degree, eigenvector and betweenness. Each time attention is limited to the largest component only, since centrality measures are not comparable across components. As the authors point out, including three different measures of centrality is not simply due diligence. They explain that while degree centrality provides a good measure of how central researchers are within their communities, eigenvector centrality roughly corresponds to the effort brought forward in equilibrium - a nuanced, but important difference. Finally, betweenness centrality can help us understand which researchers help information to flow between communities of researchers. An interesting finding here is that correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connect their colleagues with each other.
 
 #### Forecasting researcher's productivity 
 
-Both networks are derived from paper are dynamic in the sense that they involve a time dimension
-
-Use different centrality measures: degree, eigen and betweenness. Focus is limited to "giant" component since centrality measures are not comparable across components (**DOUBLE CHECK. POTENTIAL SHORTFALL?**).
-
-- the effort brought forward in equilibrium corresponds to someone’s eigenvector centrality.
-
-- Since eigenvector centrality focuses on connectivity and influence only, but remains silent about the importance of a researcher for knowledge flows, we also study betweenness centrality
-
-Correlation between eigenvector centrality and betweenness centrality is not high: it appears that researchers with high influence are not necessarily the ones that connects clusters of researchers.
-
--  network of informal collaboration contains information not embedded in corresponding co-author networks. Put differently, co-author collaboration net- works are not merely a proxy for informal collaboration. Informal collaboration networks also capture a larger share of the variance.
-
-Argue that this should help identify promising candidates during the hiring process (based on the commenters they are connected to). **REVERSE CAUSALITY**
+@ductor2014social use a social network of co-authors to study if information about individual researchers' relations with others in the network can be used to forecast their future productivity. Comparing forecasts from two benchmark models that merely include information about an individual's past output to a model that incorporates network variables, they find that the latter leads to slightly more accurate forecasts. @rose20185 apply that methodology to both the co-author network and the network of informal collaboration, in each case benchmarking forecasts to a model that only uses information about individuals' past output. In particular, the additional network information included involves the various centrality measures introduced above. The reduction in the root mean forecasting error (RMSE) is significant in both cases, though higher with respect to the network of informal collaboration. The highest forecasting accuracy is attained when using information from both networks. The authors' main conclusion from this exercise is that incorporating network information can support the process of hiring researchers.
 
 #### Success of papers
 
-Network centrality has impact on success of paper:
-
-- first, the commenters’ network centrality contains information for both citation count and journal publications
-
-- Second, and most importantly, models with centralities computed in the network of informal collaboration outperform those models with centralities computed in the co-author network.
-
-- Finally, the centrality of authors and commenters matter for publication in crucial ways. Specif- ically, betweenness centrality and eigenvector centrality of authors and commenters in both networks are correlated in different ways with the dependent variables. 
-
-- This finding suggests that authors and commenters that connect different communities (high betweenness centrality) are less likely to publish in one of the top journals although their papers are cited more than the average of the journal
+To understand further the effect of researcher characteristics on the success of a paper (first leading question [above](lead)), the authors repeat the estimation from above (Equation \@ref(eq:success)), this time including centrality measures instead. Perhaps somewhat unsurprisingly, they find that centrality of researchers does contain significant information about how well a paper is received. The most striking result here is that information from the informal network once again appears to yield more significant estimates. Also consistent with observations already made above, the findings here suggest that high betweenness centrality negatively affects the success of a paper, in sharp contrast to other measures of centrality. 
 
 #### Centrality of researchers
 
-
-- More senior researchers are less influential in the network (lower eigenvector centrality), while more prolific researchers are more likely to connect otherwise disparate research communities (higher betweenness centrality). 
-
-
-
-*what is/are the main takeaway(s) from the paper?*
-
-- researcher’s position in this network is predictive of her future productivity and the scholarly impact of the papers she comments on
-
-- We find positive but rather weak correlations (around 0.5) between scientific productivity measures and the number of acknowledged contributions.
-
-- Female researchers are ackowledged considerably less
-
-- find centralities in the network of informal collaboration to have higher explanatory power than centralities in the co-author networks.
-
-- Conditional having an acknowledgement, the average top journal publication acknowledges almost twice as many commenters as the average non-top journal publication (10.8 vs. 6.2).
-
-Co-authorship and conference participation has increased over time, while number of commenters and seminars has remained stable. It also appears that younger researchers have been more likely to acknowledge commenters and more generally make use of informal collaboration.
-
-- Notably Ductor et al. (2014) show that an economist’s future productivity can be forecasted using variables derived from a co-author network. 
+Broadly in line with the last point, the authors also find that while experience and prolificness of researchers tend to be associated with higher betweenness centrality, prolificness has no significant effect on eigenvector centrality of authors, that is their overall influence within the network. There is also some evidence that female researchers are less likely to have high betweenness centrality.
 
 ## Critical review {#crit}
 
 ### Threats to validity
 
-- Threads to validity: While strategic acknowledging is discouraged and can be costly, it remains the main threat to reliability measuring informal collaboration with acknowledgements data.
+There are a few caveats, some of which the author's point out themselves. With respect to incentives for including commenters in the acknowledgements section, @rose20185 point out that acknowledging may be strategic: name-tagging a prolific, senior researcher may be beneficial to a young researcher for reasons not related to their actual comments. While this is perhaps the main concern regarding the validity of the data, other small issues are worth pointing out. Firstly, it is potentially problematic to focus on the largest component only, especially since the network of informal collaboration is so much more connected. Secondly, the fact that gender had to be estimated from authors names adds some additional uncertainty regarding any conclusions with respect to gender. Finally, the rationale for excluding industry professionals and central bankers from the analysis is not entirely clear. After all, these professionals play an important role in academic research around Financial Economics: they attend and organise conferences, can often provide a unique first-hand perspective on financial markets and regularly produce research published in academic journals themselves. 
 
+### Concluding thoughts
 
-The rationale for excluding industry professionals and central bankers from the analysis is not very clear. After all, these professionals play an important role in academic research around Financial Economics: they attend and organise conferences, can often provide a unique first-hand perspective on financial markets and regularly produce research published in academic journals themselves. 
-
-### Related literature
-
-While they do mention... - Too strong authority (or leadership) may have a negative effect, as it prevents theories to be challenged (Azoulay et al., 2019). Too much close networks might result in biased academic reviews (Carrell et al., 2020). 
-... the focus in their conclusion is 
-
-1. @rose2020discussants: Even among a set of papers that is highly selected on expected quality, discussants matter for top journal publication. Conditional on having a discussant, a
-paper’s citation count increases in the discussant’s prolificness. Using social network analysis we rule out a diffusion channel through which citations accumulate because discussants diffuse information about the paper within their social network.
-
-2. @dong2021cross: show that preferential allocation of publications through success-breeds-success engenders disparity in institutions’ research output, while acceleration in the growth of collaboration reduces the dispersion.
+In terms of the author's main conclusions, I would have expected a slightly different tone. While they do not fail to mention potential pitfalls associated with networks characterized by a few central agents with high influence [@azoulay2019does], I would have expected more of the discussion to revolve around this, rather than the benefits of network information for hiring committees. In particular, more investigation could have gone into the growth dynamics of the networks: do the networks exhibit success-breeds-success dynamics? Figure (\@ref(fig:degrees)) shows the distribution of out-degrees (logs) of the two types of networks. Evidently, in particular for the informal network this distribution is heavily right-skewed, indicative of a few highly influential researchers. There is some indication that this skew has mildly increased over the sample period. Interestingly, a recent publication that cites @rose20185 investigates just that at the institutional level and finds that success-breeds-success dynamics appear to lead to disparity of institutional output [@dong2021cross]. With all that said, @rose20185 is a comprehensive paper as it is and admittedly a thorough investigation of network dynamics would have exceeded its scope.
 
 ```{r degrees, fig.cap="Distribution of out-degrees of the two types of networks. At each time $t$ the networks include relationships formed in $t-2$, $t-1$ and $t$ as in @rose20185."}
 library(ggridges)
@@ -276,13 +262,9 @@ p <- ggplot(dt_plot[degree!=0], aes(x = log(degree), y = year, fill = stat(x))) 
 p
 ```
 
-*is there anything you particularly like or dislike from the methodology/analysis? Would you suggest a different/complementary approach?*
+### Future research
 
-*do you think there are open issues/questions that could be considered?*
-
-*is there anything that could extrapolate to other situations as well?*
-
-*have you found in the paper what you were expecting? If not, how does it differ from your expectations?*
+Overall @rose20185 provides an interesting, reproducible exhibit of how network science can be applied to social science research. In a recent follow-up paper @rose2020discussants demonstrate that their methodology can be readily applied to other, related questions: the find that a paper’s citation count increases in the discussant’s prolificness. Using social network analysis they rule out a diffusion of information about the paper within the discussant's social network as a factor. Finally, let me propose another interesting avenue for future research: the role of researchers in cross-disciplinary research. @rose20185 and related papers have tended to limit their attention to one field of research. An interesting idea could be to use betweenness centrality to identify researchers that contribute to bridging the gaps between different lines of thought and even separate disciplines. This information could then be used to analyse the effectiveness of cross-disciplinary research towards increased overall research productivity.
 
 \pagebreak
 
