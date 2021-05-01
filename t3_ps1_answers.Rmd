@@ -1,0 +1,42 @@
+---
+title: "Problem Set 2"
+author: "Marc Agusti, Patrick Altmeyer, Polina Berenstein"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+library(expm)
+library(igraph)
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
+
+# On Social Multipliers
+
+## A Linear-in-Sums Model
+
+## A Linear-in-Means Model
+
+## A Model of Peer Pressure
+
+### (a) Explain why this utility function represents the peer pressure effect.
+
+Here $\bar{e}_i$ can be understood as the average effort invested by $i$'s neighbours. The only difference to the model with strategic complementaries is with respect to the last term. That difference is nuanced, but important: instead of $e_{-i}$ directly interacting with $e_i$, here utility decreases whenever the difference between $e_i$ and $\bar{e}_i$ is large (either positive and large or negative and large). This is exactly how we understand peer pressure intuitively: under peer pressure we want to do exactly what everyone else does, neither more nor less. 
+
+### (b) Study the effects in individual and aggregate equilibrium efforts of an increase ∆ in α in the empty, complete, and star network. Compare it to the case of a linear-in-sums model.
+

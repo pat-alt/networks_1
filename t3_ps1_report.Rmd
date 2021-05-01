@@ -1,0 +1,89 @@
+---
+title: "Name Your Friends, but Only Five?"
+subtitle: "Final report"
+author: "Patrick Altmeyer"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: 
+  bookdown::pdf_document2:
+    toc: false
+    number_sections: false
+  bookdown::html_document2:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    number_sections: false
+bibliography: bib.bib
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(data.table)
+library(igraph)
+library(ggplot2)
+theme_set(theme_bw())
+helper_functions <- list.files("R")
+lapply(
+  helper_functions,
+  function(i) {
+    source(file = file.path("R",i))
+  }
+)
+```
+
+# Brief summary
+
+Surveys-based research of peer effects in networks usually set a cap on the number of neighbours ("friends") of individuals. For example, surveys would typically ask individuals to nominate at most five friends. In this context @griffith2020name defines the property of *order irrelevance*.
+
+
+```{definition, name="Order irrelevance", echo=TRUE}
+The distribution of peer characteristics does not change across nomination ranks. In the context of censoring this implies that the characteristics of censored and hence ubobserved peers follow the same distribution as though of observed peers.
+```
+
+@griffith2020name works with the same linear-in-means model we discussed in class, so we will refrain from restating this here. Let $k^{*}_i$ denote the true number of friends of individual $i$. Then the interesting point is that with censoring ($k<k^{*}_i$) we have $\tilde{g_{ij}}^{(k)}=\frac{1}{k}\sum_{j=1}^{k}g_{ij}$, which is of course different from $\tilde{g_{ij}}^{*}=\frac{1}{k^{*}_i}\sum_{j=1}^{k^{*}_i}g_{ij}$. The same holds for the sample means of outcome variable $y$ and exogenous characteristics $x$, as discussed in @griffith2020name. These deviations from the "true" model also introduce deviations in the reduced-form (RF) parameter estimates of peer effects. In particular, @griffith2020name uses a number of simplifying assumption to derive two main analytical results. Firstly, assuming that individual characteristics are randomly assigned we have for the RF estimator that
+
+\begin{equation} 
+\begin{aligned}
+&& \hat{\alpha}_{RF}^{(k)}&\rightarrow \begin{pmatrix}
+\beta_2 \\
+\frac{ \mathbb{E} \frac{1}{d^*}}{\mathbb{E} \frac{1}{d^{(k)}}} \beta_3
+\end{pmatrix} \\
+\end{aligned}
+(\#eq:find1)
+\end{equation}
+
+where as in class $\beta_3$ measures peer effects. Clearly $d^*>d^{(k)}$ and hence $\hat{\beta}_3 < \beta_3$, the downward bias discussed above. The second result (not restated here) shows that the bias works in the opposite direction as the correlation between individual $i$'s characteristics and those of her friends. In case of homophily then, $\beta_3$ is attenuated. The author further shows that in the same setting $\beta_2$ is inflated, so updward-biased.
+
+@griffith2020name then turns to read data sets and in two empirical experiments lets the censoring threshold $k$. In the interest of brevity we will not cover the findings in detail here, but simply summarize in the author's words:
+
+> "Results are clear: the more links that are censored, the more attenuated are peer effects parameters; that is, peer effects parameters trend away from zero as more links are observed."
+--- @griffith2020name 
+
+In light of these findings the author proposes a way to bias-correct the downward-biased peer effect parameters estimated from a reduced-form model, once again under the assumption of order irrelevance. A complete description of the approach is beyond the scope of this summary, but at a high level it involves the following transformation
+
+$$
+\begin{aligned}
+&& \hat{\alpha}_{RF}^{(k)}&=\mathbf{B}_k \alpha  \\
+&& \alpha&=\mathbf{B}_k^{-1}\hat{\alpha}_{RF}^{(k)} \\
+\end{aligned}
+$$
+
+where $\mathbf{B}_k$ can be estimated and - when working under the same assumptions as before - is of the following intuitive form:
+
+$$
+\begin{aligned}
+&& \mathbf{B}_k&= \begin{pmatrix}
+\mathbf{I} & \mathbf{0} \\
+\mathbf{0} & \mathbf{I}_k
+\end{pmatrix} \\
+\end{aligned}
+$$
+
+# Thoughts
+
+@griffith2020name picks up on an important issue, demonstrates the issue empirically and then provides a remedy to it. All in all this paper is therefore well set-out and making interesting methodological contributions. One caveat we see is the reliance on relatively strong assumptions as the author himself confesses.
+
+# References
+
+
+
