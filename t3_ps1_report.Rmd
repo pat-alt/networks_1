@@ -1,6 +1,6 @@
 ---
 title: "Name Your Friends, but Only Five?"
-subtitle: "Final report"
+subtitle: "Report"
 author: "Patrick Altmeyer"
 date: "`r format(Sys.Date(), '%d %B, %Y')`"
 output: 
@@ -35,12 +35,11 @@ lapply(
 
 Surveys-based research of peer effects in networks usually set a cap on the number of neighbours ("friends") of individuals. For example, surveys would typically ask individuals to nominate at most five friends. In this context @griffith2020name defines the property of *order irrelevance*.
 
-
-```{definition, name="Order irrelevance", echo=TRUE}
-The distribution of peer characteristics does not change across nomination ranks. In the context of censoring this implies that the characteristics of censored and hence ubobserved peers follow the same distribution as though of observed peers.
+```{definition, order, name="Order irrelevance", echo=TRUE}
+The distribution of peer characteristics does not change across nomination ranks. In the context of censoring this implies that the characteristics of censored and hence ubobserved peers follow the same distribution as those of observed peers.
 ```
 
-@griffith2020name works with the same linear-in-means model we discussed in class, so we will refrain from restating this here. Let $k^{*}_i$ denote the true number of friends of individual $i$. Then the interesting point is that with censoring ($k<k^{*}_i$) we have $\tilde{g_{ij}}^{(k)}=\frac{1}{k}\sum_{j=1}^{k}g_{ij}$, which is of course different from $\tilde{g_{ij}}^{*}=\frac{1}{k^{*}_i}\sum_{j=1}^{k^{*}_i}g_{ij}$. The same holds for the sample means of outcome variable $y$ and exogenous characteristics $x$, as discussed in @griffith2020name. These deviations from the "true" model also introduce deviations in the reduced-form (RF) parameter estimates of peer effects. In particular, @griffith2020name uses a number of simplifying assumption to derive two main analytical results. Firstly, assuming that individual characteristics are randomly assigned we have for the RF estimator that
+@griffith2020name works with the same linear-in-means model we discussed in class, so I will refrain from restating this here. Let $k^{*}_i$ denote the true number of friends of individual $i$. Then the interesting point is that with censoring ($k<k^{*}_i$) we have $\tilde{g_{ij}}^{(k)}=\frac{1}{k}\sum_{j=1}^{k}g_{ij}$, which is of course different from $\tilde{g_{ij}}^{*}=\frac{1}{k^{*}_i}\sum_{j=1}^{k^{*}_i}g_{ij}$. The same holds for the sample means of outcome variable $y$ and exogenous characteristics $x$, as discussed in @griffith2020name. These deviations from the "true" model also introduce deviations in the reduced-form (RF) parameter estimates of peer effects. In particular, @griffith2020name uses a number of simplifying assumption to derive two main analytical results. Firstly, assuming that individual characteristics are randomly assigned we have for the RF estimator that
 
 \begin{equation} 
 \begin{aligned}
@@ -54,7 +53,7 @@ The distribution of peer characteristics does not change across nomination ranks
 
 where as in class $\beta_3$ measures peer effects. Clearly $d^*>d^{(k)}$ and hence $\hat{\beta}_3 < \beta_3$, the downward bias discussed above. The second result (not restated here) shows that the bias works in the opposite direction as the correlation between individual $i$'s characteristics and those of her friends. In case of homophily then, $\beta_3$ is attenuated. The author further shows that in the same setting $\beta_2$ is inflated, so updward-biased.
 
-@griffith2020name then turns to read data sets and in two empirical experiments lets the censoring threshold $k$. In the interest of brevity we will not cover the findings in detail here, but simply summarize in the author's words:
+@griffith2020name then turns to real data sets and in two empirical experiments lets the censoring threshold $k$. In the interest of brevity we will not cover the findings in detail here, but simply summarize in the author's words:
 
 > "Results are clear: the more links that are censored, the more attenuated are peer effects parameters; that is, peer effects parameters trend away from zero as more links are observed."
 --- @griffith2020name 
@@ -81,7 +80,7 @@ $$
 
 # Thoughts
 
-@griffith2020name picks up on an important issue, demonstrates the issue empirically and then provides a remedy to it. All in all this paper is therefore well set-out and making interesting methodological contributions. One caveat we see is the reliance on relatively strong assumptions as the author himself confesses.
+@griffith2020name picks up on an important issue, demonstrates the issue empirically and then provides a remedy to it. All in all this paper is therefore well set-out and makes some interesting methodological contributions. A common problem associated with the computations involved in network analysis is the curse of dimensionality, which likely plays a role in authors choosing to resort to censoring in the first place. Using the bias-correction proposed here, one may circumvent the issue of high dimensionality and still mitigate some of the issues that arise and as discussed in @griffith2020name. One potential caveat is the reliance on relatively strong assumptions about distributional properties of individual characteristics as the author himself confesses. I am not sure, for example, if we should expect the assumption of order irrelevance (\@ref(def:order)) to hold: is there not reason to assume that individuals who are ranked higher on average (hubs) have very different individual characteristics on average than those that remain unobserved?
 
 # References
 
