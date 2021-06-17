@@ -94,9 +94,38 @@ In practice, if we could find a valid instrument $z_i$ then causal peer effects 
 
 Note here that $\mathbb{E} \left[ \varepsilon_i|v_i \right]$ is just a function $h(v_i)$ which if modelled correctly can be used to control for the endogeneity in the disturbance term $\varepsilon_i$ [@heckman1985alternative].
 
-There is some unobserved individual characteristic $a_i$ that affects network formation and is correlated with the disturbance term $\varepsilon_i$.
+In the context of the peer-effects model defined in \@ref(eq:slim) we can define both the instrument $z_i$ and the control function more precisely. Following @johnsson2021estimation let $\mathbf{D}_n$ denote the $N\times N$ adjacency matrix corresponding to the matrix of interactions $\mathbf{G}$, where links are formed as follows:
+
+\begin{equation} 
+\begin{aligned}
+&& d_{i,j}&=\mathbb{I}(g(v_i,v_j) \ge u_{ij})\mathbb{I}(i\ne j) \\
+\end{aligned}
+(\#eq:links)
+\end{equation}
+
+Here $v_i,v_j$ are the unobserved individual characteristics corresponding to the residual term in \@ref(eq:iv), $g(\cdot,\cdot)$ is some function and $u_{i,j}$ is a link-specific component. We can think of the adjacency matrix $\mathbf{D}_n$ as a way to summarize the mechanism of network formation. In other words, $\mathbf{D}_n$ is precisely the instrument that we would like to observe, but in practice may have difficulty to find as already mentioned above. Provided though that we find a way to estimate the control function $h(v_i)=\mathbb{E} \left[ \varepsilon_i|v_i \right]=\mathbb{E} \left[ \varepsilon_i|\mathbf{D}_i,v_i \right]$ the problem of network endogeneity can be resolved. In particular, all that is left to do is to actually control for $h(v_i)$ in \@ref(eq:slim), namely
+
+\begin{equation} 
+\begin{aligned}
+&& y_i&=\delta \tilde{x}_i + h(v_i) + \epsilon_i \\
+\end{aligned}
+(\#eq:controlled)
+\end{equation}
+
+where now clearly $\mathbb{E} \left[\varepsilon_i|\tilde{x}_i,h(v_i)\right]=\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G},h(v_i)\right]=0$.
 
 # Literature review {#lit}
+
+The problem with the model in \@ref(eq:controlled) is that $v_i$ is unobserved and its absence $h(v_i)$ cannot be estimated. The main contribution of @johnsson2021estimation is the observation that by the Weak Law of Large Numbers (WLLN) the control function can be proxied by a function of the average node degree
+
+\begin{equation} 
+\begin{aligned}
+&& h(v_i)&= \mathbb{E} \left[ \varepsilon_i | v_i \right] \approxeq \mathbb{E} \left[ \varepsilon_i | \bar{k}_i \right] = h_*(\bar{k}_i)\\
+\end{aligned}
+(\#eq:deg)
+\end{equation}
+
+where $\bar{k}_i= \frac{1}{N} \sum_{j\ne i}^{d_{ij}}$.
 
 # Conclusion {#conc}
 
