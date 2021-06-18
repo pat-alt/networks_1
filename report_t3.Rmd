@@ -31,9 +31,9 @@ theme_set(theme_bw())
 
 # Introduction
 
-In the existing literature network exogeneity is commonly assumed: network properties are assumed to be independent of individual characteristics. This assumption is restrictive and in fact often violated in real-world applications. The most commonly cited example is peer-effects in the context of academic performance, where the assumption of network exogeneity imposes that there are no unobserved factors that affect both the formation of friendships and scholarly outcomes [@carrell2009does, @hsieh2016social]. Clearly there are unobservable factors, for example concerning students' shared interests or family background, that may affect both the friendships they choose and how well they perform in school [@johnsson2021estimation]. Other examples of endogenous networks come to mind: a central bank may be interested in studying the effect of interconnectivity in interbank money markets on the interest rates that individual market participants pay and receive. While there are observable variables such as size or geographical location of banks that may affect both their interconnectivity and the interest rates they face, it is easy to think of unobserved factors that lead to network endogeneity such as the banks' business models. 
+In the existing literature network exogeneity is commonly assumed: network properties are assumed to be independent of individual characteristics. This assumption is restrictive and in fact often violated in real-world applications. The most commonly cited example is peer-effects in the context of academic performance, where the assumption of network exogeneity imposes that there are no unobserved factors that affect both the formation of friendships and scholarly outcomes [@carrell2009does, @hsieh2016social]. Clearly there are unobservable factors, for example concerning students' shared interests or family background, that may affect both the friendships they choose and how well they perform in school [@johnsson2021estimation]. Other examples of endogenous networks come to mind: a central bank may be interested in studying the effect of interconnectivity in interbank money markets on the interest rates that individual market participants pay and receive. While there are observable variables such as size or geographical location of banks that may affect both their interconnectivity and the interest rates they face, it is easy to think of unobserved factors that lead to network endogeneity such as the banks' business models.
 
-Unobserved individual heterogeneity is not unique to the study of peer effects. The literature on causal inference in social sciences has come up with a number of tools to deal with endogeneity, perhaps most notably the use instrumental variables [see for example @morgan2015counterfactuals]. Instrumental variables that affect the outcome only through the endogenous regressor are often hard to find and particularly so in the context of endogenous networks: linking this back to the example of students, it is difficult to think of an effective instrument without even knowing the mechanism of network formation [@hsieh2016social]. 
+Unobserved individual heterogeneity is not unique to the study of peer effects. The literature on causal inference in social sciences has come up with a number of tools to deal with endogeneity, perhaps most notably the use instrumental variables [see for example @morgan2015counterfactuals]. Instrumental variables that affect the outcome only through the endogenous regressor are often hard to find and particularly so in the context of endogenous networks: linking this back to the example of students, it is difficult to think of an effective instrument without even knowing the mechanism of network formation [@hsieh2016social].
 
 Another popular way to deal with endogenous regressors is commonly referred to as the control function approach originally introduced by @heckman1985alternative. Instead of attempting to resolve the issue of endogeneity by instrumenting the endogenous regressors, the control function approach tackles endogeneity head-on by modelling the endogeneity in the disturbance term of the model. This report reviews a number of recent papers that use the control function approach to resolve the issue of network endogeneity. @johnsson2021estimation is the most recent study that has emerged from that body of literature and will serve as the baseline for this review.
 
@@ -43,92 +43,112 @@ The remainder of this report is structured as follows: section \@ref(peer) brief
 
 The linear-in-means model was originally proposed by @manski1993identification under the premise that any individual's outcome tends to be affected both by her individual characteristics as well as the characteristics and outcomes of her friends. The dependence of individuals' outcomes on those of their peers can generate a social multiplier: a student who is surrounded by friends who perform well at school is likely to draw benefits from her peers' success [@carrell2009does]. Let $(\mathbf{x}, \mathbf{y}, \mathbf{G})$ denote the tuple of exogenous characteristics, endogenous outcomes and the network. In particular, let elements in $\mathbf{G}$ be defined as $g_{ij}=\frac{1}{d_i}$ if $j\in N_i$ where $d_i=|N_i|$ denotes the total degree of individual $i$, that is the size of her neighbourhood $N_i$. Then following @bramoulle2020peer the linear-in-means model can be formally defined as follows:
 
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && y_i&=\alpha + \gamma x_i + \delta \frac{1}{d_i} \sum_{j\in N_i}x_j+\beta \frac{1}{d_i} \sum_{j\in N_i}y_j + \varepsilon_i \\
 \end{aligned}
 (\#eq:lim)
 \end{equation}
-
-For an unbiased estimation of the parameters in \@ref(eq:lim) we need to have that $\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G}\right]=0$. In other words, linear-in-means models hinges on the assumption that both the individual characteristics $\mathbf{x}$ and the network $\mathbf{G}$ are strictly exogenous with respect to the outcome and the disturbance term $\varepsilon_i$ is therefore free any endogeneity. 
+```
+For an unbiased estimation of the parameters in \@ref(eq:lim) we need to have that $\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G}\right]=0$. In other words, linear-in-means models hinges on the assumption that both the individual characteristics $\mathbf{x}$ and the network $\mathbf{G}$ are strictly exogenous with respect to the outcome and the disturbance term $\varepsilon_i$ is therefore free any endogeneity.
 
 Studies that aim to provide credible estimates of causal effects from peers to outcomes must demonstrate that the assumption of strict network exogeneity is not violated: there should be no unobservable source of correlation between the network and the outcome of interest. @bramoulle2020peer review some of the most common tools that are available to researchers in order to do establish exogeneity. They can be summarized at a high level as follows:
 
-1. Researchers may rely on **random peers** or **quasi-random peers**, that is randomly allocated peers in natural or controlled experiments [@sacerdote2001peer, @falk2006clean, @carrell2013natural]. A shortfall of this approach is that if peers are random, it is difficult to make sense of what peer effect exactly is being estimated, albeit causally.
-2. Instead of assigning network connections at random, other researchers have instead relied on **random shocks**. This approach connects the linear-in-means model to the potential outcome framework [@morgan2015counterfactuals] in which causality is established through interventions. It can be shown that as long as there is no selection bias with respect to treatment and the network of interactions is not affected by the treatment, then causal peer effects can be identified. 
-3. In the absence of exogenous variation, researchers can rely on **structural endogeneity**. Structural approaches attempt to model the source of endogeneity directly. Of course, the control function approach considered here falls into this category. In fact, the first paper to propose a structural approach to endogeneity uses the control function approach to introduce a latent variable that affects both the outcome and network formation [@goldsmith2013social].
-4. Finally, researchers have also made use of **panel data** to identify unobserved heterogeneity through individual fixed effects, thereby mitigating concerns around correlated effects.
+1.  Researchers may rely on **random peers** or **quasi-random peers**, that is randomly allocated peers in natural or controlled experiments [@sacerdote2001peer, @falk2006clean, @carrell2013natural]. A shortfall of this approach is that if peers are random, it is difficult to make sense of what peer effect exactly is being estimated, albeit causally.
+2.  Instead of assigning network connections at random, other researchers have instead relied on **random shocks**. This approach connects the linear-in-means model to the potential outcome framework [@morgan2015counterfactuals] in which causality is established through interventions. It can be shown that as long as there is no selection bias with respect to treatment and the network of interactions is not affected by the treatment, then causal peer effects can be identified.
+3.  In the absence of exogenous variation, researchers can rely on **structural endogeneity**. Structural approaches attempt to model the source of endogeneity directly. Of course, the control function approach considered here falls into this category. In fact, the first paper to propose a structural approach to endogeneity uses the control function approach to introduce a latent variable that affects both the outcome and network formation [@goldsmith2013social].
+4.  Finally, researchers have also made use of **panel data** to identify unobserved heterogeneity through individual fixed effects, thereby mitigating concerns around correlated effects.
 
 In the following we will look at the third point in more detail.
 
-# Control function approach {#control}
+# Control functions for endogenous networks {#control}
 
 Without loss of generality consider a simplified version of the linear-in-means model in \@ref(eq:lim)
 
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && y_i&=\delta \tilde{x}_i + \varepsilon_i \\
 \end{aligned}
 (\#eq:slim)
 \end{equation}
+```
 
-where $\tilde{x}_i=\frac{1}{d_i} \sum_{j\in N_i}x_j$. Assume that the assumption of strict exogeneity is violated: $\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G}\right]=\mathbb{E} \left[\varepsilon_i|\tilde{x}_i\right]\ne0$. Suppose there exists some exogenous variable $z_i$ that could serve as an instrument, if only we were able to find it. We have that 
+where $\tilde{x}_i=\frac{1}{d_i} \sum_{j\in N_i}x_j$. Assume that the assumption of strict exogeneity is violated: $\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G}\right]=\mathbb{E} \left[\varepsilon_i|\tilde{x}_i\right]\ne0$. Suppose there exists some exogenous variable $z_i$ that could serve as an instrument, if only we were able to find it. We have that
 
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && \tilde{x}_i&=\beta_zz_i + v_i \\
 \end{aligned}
 (\#eq:iv)
 \end{equation}
+```
+with $\mathbb{E} \left[v_i|z_i\right]=0$ and $\mathbb{E} \left[\varepsilon_i|z_i,v_i\right]=\mathbb{E} \left[\varepsilon_i|v_i\right]$ where the latter implies that the instrument affects the outcome $y_i$ only through its effect on the instrumented variables $\tilde{x}_i$ (exclusion restriction).
 
-with $\mathbb{E} \left[v_i|z_i\right]=0$ and $\mathbb{E} \left[\varepsilon_i|z_i,v_i\right]=\mathbb{E} \left[\varepsilon_i|v_i\right]$ where the latter implies that the instrument affects the outcome $y_i$ only through its effect on the instrumented variables $\tilde{x}_i$ (exclusion restriction). 
+In practice and in the context of peer effects, if we could find a valid instrument $z_i$ then causal peer effects could be identified through two-stage least-squares. The control function approach instead makes use of the fact that the exclusion restriction implies the following:
 
-In practice, if we could find a valid instrument $z_i$ then causal peer effects could be identified through two-stage least-squares. The control function approach instead makes use of the fact that the exclusion restriction implies the following:
-
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && \mathbb{E} \left[ y_i|\tilde{x}_i,v_i  \right]&=\delta \tilde{x}_i + \mathbb{E} \left[ \varepsilon_i|\tilde{x}_i,v_i \right]=\delta \tilde{x}_i + \mathbb{E} \left[ \varepsilon_i|z_i,v_i \right]=\delta \tilde{x}_i + \mathbb{E} \left[ \varepsilon_i|v_i \right] \\
 \end{aligned}
 (\#eq:control)
 \end{equation}
-
+```
 Note here that $\mathbb{E} \left[ \varepsilon_i|v_i \right]$ is just a function $h(v_i)$ which if modelled correctly can be used to control for the endogeneity in the disturbance term $\varepsilon_i$ [@heckman1985alternative].
 
 In the context of the peer-effects model defined in \@ref(eq:slim) we can define both the instrument $z_i$ and the control function more precisely. Following @johnsson2021estimation let $\mathbf{D}_n$ denote the $N\times N$ adjacency matrix corresponding to the matrix of interactions $\mathbf{G}$, where links are formed as follows:
 
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && d_{i,j}&=\mathbb{I}(g(v_i,v_j) \ge u_{ij})\mathbb{I}(i\ne j) \\
 \end{aligned}
 (\#eq:links)
 \end{equation}
-
+```
 Here $v_i,v_j$ are the unobserved individual characteristics corresponding to the residual term in \@ref(eq:iv), $g(\cdot,\cdot)$ is some function and $u_{i,j}$ is a link-specific component. We can think of the adjacency matrix $\mathbf{D}_n$ as a way to summarize the mechanism of network formation. In other words, $\mathbf{D}_n$ is precisely the instrument that we would like to observe, but in practice may have difficulty to find as already mentioned above. Provided though that we find a way to estimate the control function $h(v_i)=\mathbb{E} \left[ \varepsilon_i|v_i \right]=\mathbb{E} \left[ \varepsilon_i|\mathbf{D}_i,v_i \right]$ the problem of network endogeneity can be resolved. In particular, all that is left to do is to actually control for $h(v_i)$ in \@ref(eq:slim), namely
 
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && y_i&=\delta \tilde{x}_i + h(v_i) + \epsilon_i \\
 \end{aligned}
 (\#eq:controlled)
 \end{equation}
-
+```
 where now clearly $\mathbb{E} \left[\varepsilon_i|\tilde{x}_i,h(v_i)\right]=\mathbb{E} \left[\varepsilon_i|\mathbf{x},\mathbf{G},h(v_i)\right]=0$.
 
-# Literature review {#lit}
+The problem with the model in \@ref(eq:controlled) is that $v_i$ is unobserved and in its absence $h(v_i)$ cannot be estimated. A way to consistently estimate $v_i$ through joint maximum likelihood (JML) has previously been proposed by @graham2017econometric, but this approach scales poorly to sparse networks. One of the main contributions of @johnsson2021estimation is their observation that asymptotically the control function can be proxied by a function of the average node degree
 
-The problem with the model in \@ref(eq:controlled) is that $v_i$ is unobserved and its absence $h(v_i)$ cannot be estimated. The main contribution of @johnsson2021estimation is the observation that by the Weak Law of Large Numbers (WLLN) the control function can be proxied by a function of the average node degree
-
+```{=tex}
 \begin{equation} 
 \begin{aligned}
 && h(v_i)&= \mathbb{E} \left[ \varepsilon_i | v_i \right] \approxeq \mathbb{E} \left[ \varepsilon_i | \bar{k}_i \right] = h_*(\bar{k}_i)\\
 \end{aligned}
 (\#eq:deg)
 \end{equation}
+```
+where $\bar{k}_i= \frac{1}{N} \sum_{j\ne i}d_{ij}$. They establish this result formally, which I will not restate here. Note, however, that the finding makes intuitive sense: the average node degree $\bar{k}_i$ can be thought of as centrality measure and more specifically as the probability that node $i$ forms a link with any given node in the network. Consequently, using $h_*(\bar{k}_i)$ as the control function is consistent with the premise that the formation of links is driven by unobserved individual characteristics $v_i$ for $i,...,N$.
 
-where $\bar{k}_i= \frac{1}{N} \sum_{j\ne i}^{d_{ij}}$.
+As noted above, \@ref(eq:slim) is a simplified version of the general linear-in-means model defined in \@ref(eq:lim). @johnsson2021estimation show that the approach outlined can be extended to the general case and derive limiting distributions and standard errors for the resulting peer-effects estimators, which goes beyond the scope of this report.
 
-# Conclusion {#conc}
+To assess the performance of their proposed approach the authors use Monte Carlo simulations. They first generate two networks according to variations of the dyadic network formation models in \@ref(eq:links) - a dense network $\mathbf{G}_{d}$ and a sparse network $\mathbf{G}_{s}$. Individual node heterogeneity $v_i$, which is unobserved in practice but of course necessary to generate the network interaction, is also simulated for this empirical exercise. With $\mathbf{G}_{d}$, $\mathbf{G}_{h}$ and $v_i$ at hand individual outcomes can be generated according to the general linear-in-means model in \@ref(eq:lim) for fixed parameter values of $\alpha$, $\gamma$, $\delta$ and $\beta$. 
+
+For the simulated data and outcomes the authors then estimate the general linear-in-means model using the control function approach under various specifications and using a set of simple basis functions for $h(\cdot)$. They then check how far away the estimated coefficients are from their 'true' values (i.e. the fixed choices of $\alpha$, $\gamma$, $\delta$ and $\beta$). For the dense network they find that the bias of estimators is very small when the control function approach is implemented either through JML estimates ($\hat{h}(\hat{v}_i)$) or using the average node degree as a proxy ($\hat{h}(\bar{k}_i)$) for individual degree heterogeneity. In the case of the sparse network $v_i$ cannot be consistently estimated through JML as mentioned above, but the authors demonstrate that the approach using $\bar{k}_i$ produces estimates with very low bias. Finally, for both networks the authors find that non-linear control functions outperform the linear one.
+
+# Discussion {#lit}
+
+@johnsson2021estimation propose a simple and effective way to resolve the issue of network endogeneity using the control function approach [@heckman1985alternative]. Previous related papers have relied on fully parametrized network formation models [@goldsmith2013social, @hsieh2016social], while the approach proposed by @johnsson2021estimation is nonparametric. 
+
+An important methodological contribution of @johnsson2021estimation is the observation that in the context of the control function approach unobserved degree heterogeneity can be proxied by average node degrees. This facilitates the use of the control function approach for sparse networks, for which JML estimations of $v_i$ are inconsistent. 
+
+Finally, the authors also demonstrate that using simple non-linear control functions leads to better outcomes than the more restrictive linear case, which was used in @qu2015estimating. The exact choice of the functional form of the control function is found to be of little importance.
+
+There are two important shortcomings of the proposed approach which the authors do not fail to point out. Firstly, note that the dyadic model of link formation defined in \@ref(eq:links) above imposes that the formation of links between any two nodes $i$ and $j$ depends only on unobserved characteristics of the two nodes in question, namely $v_i$ and $v_j$. This is a simplistic version of network formation and depending on the application may not be very realistic: individuals often form ties with friends of friends [see for example @jackson2007meeting]. Secondly, network formation is assumed to be driven only by unobserved factors, but strictly not by the exogenous regressor in \@ref(eq:controlled).
 
 \pagebreak
 
-# References 
+# References
